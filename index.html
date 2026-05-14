@@ -9,7 +9,8 @@ content="width=device-width, initial-scale=1.0">
 
    <meta http-equiv="Cache-Control"
 content="no-store, no-cache, must-revalidate">
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
    <meta
 name="referrer"
 content="strict-origin-when-cross-origin">
@@ -1553,10 +1554,9 @@ class="modal">
 
         </div>
 
-<iframe
-id="viewer"
-allowfullscreen>
-</iframe>
+<div id="pdf-render-container" style="overflow: auto; background: #333; height: 100%;">
+    <canvas id="pdf-canvas" style="display: block; margin: 0 auto;"></canvas>
+</div>
 
     </div>
 
@@ -1564,10 +1564,7 @@ allowfullscreen>
 
 <!-- =========================
      SCRIPT
-========================= -->
-
-<script src="23hy-ui7e.js"></script>
-   
+========================= -->   
 <script>
 
 let masterPassword = "";
@@ -3082,13 +3079,37 @@ displayName){
             encryptedData
         );
 
-        const blob =
-        new Blob(
-            [decrypted],
-            {
-                type:"application/pdf"
-            }
-        );
+// ... after decryption logic ...
+const decryptedBuffer = decrypted; // This is your decrypted array buffer
+
+// Initialize PDF.js
+const pdfjsLib = window['pdfjs-dist/build/pdf'];
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// Load the document from memory (not a link!)
+const loadingTask = pdfjsLib.getDocument({data: decryptedBuffer});
+const pdf = await loadingTask.promise;
+
+// Render the first page
+const page = await pdf.getPage(1);
+const viewport = page.getViewport({scale: 1.5});
+const canvas = document.getElementById('pdf-canvas');
+const context = canvas.getContext('2d');
+
+canvas.height = viewport.height;
+canvas.width = viewport.width;
+
+const renderContext = {
+    canvasContext: context,
+    viewport: viewport
+};
+
+// Start rendering
+await page.render(renderContext).promise;
+
+// Show the modal
+document.getElementById('modal').style.display = 'block';
+document.getElementById('modal-title').textContent = displayName;
 
         currentBlobUrl =
         URL.createObjectURL(blob);
