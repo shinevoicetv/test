@@ -1409,157 +1409,81 @@ style="display:none;">
 
 <div id="vault-dashboard">
 
-<nav class="passport-navbar">
-
-    <!-- TOP BAR -->
-
-    <div class="passport-topbar">
-
-        <!-- LIVE DATE + TIME -->
-
-        <button
-        class="passport-btn access-btn"
-        id="passport-datetime">
-
-            Loading Time...
-
-        </button>
-
-        <!-- RIGHT BUTTONS -->
-
-        <div class="passport-actions">
-
-            <button
-            class="passport-btn access-btn"
-            onclick="openLogs()">
-
-                ACCESS LOG
-
-            </button>
-
-            <button
-            class="passport-btn emergency-btn"
-            onclick="openEmergencyContact()">
-
-                EMERGENCY CONTACT
-
-            </button>
-
+    <nav class="passport-navbar">
+        <div class="passport-top-utility">
+            <div class="utility-left">
+                <span id="passport-datetime">Thursday, May 14, 2026 | 21:39:47</span>
+            </div>
+            <div class="utility-right">
+                <span>Skip to Main Content</span> | 
+                <span>Screen Reader Access</span> | 
+                <span>Sitemap</span> |
+                <span class="font-controls">A- A A+</span> |
+                <span class="lang-switch">हिन्दी Hindi</span>
+            </div>
         </div>
 
-    </div>
-
-    <!-- NAME BAR -->
-
-    <div class="passport-mainbar">
-
-        <div class="passport-name">
-            SHINEIL KEITH MATHIAS
+        <div class="passport-main-nav">
+            <div class="nav-brand">
+                <div class="brand-text">
+                    <span class="brand-title">SHINEIL KEITH MATHIAS</span>
+                    <span class="brand-sub">SECURE DIGITAL VAULT | GOVERNMENT OF PERSONAL RECORDS</span>
+                </div>
+            </div>
+            
+            <div class="nav-auth">
+                <button class="btn-outline" onclick="openLogs()">ACCESS LOG</button>
+                <button class="btn-solid" onclick="openEmergencyContact()">EMERGENCY CONTACT</button>
+            </div>
         </div>
+    </nav>
 
-    </div>
-
-</nav>
     <div class="main-container">
-
-        <!-- SIDEBAR -->
-
         <aside class="sidebar">
-
             <ul id="cat-list"></ul>
-
         </aside>
 
-        <!-- CONTENT -->
-
         <main class="content-view">
-
             <div class="timer-box">
-
                 <div class="timer-text">
-
                     ⚠️ <strong>Security Session:</strong> For your protection, you will be logged out after 1 hour of session time or 2 minutes of inactivity.
-
                 </div>
-
-                <div id="session-timer">
-
-                    60:00
-
-                </div>
-
+                <div id="session-timer">60:00</div>
             </div>
 
-<h2 id="cat-title">
-    Vault Ready To Use
-</h2>
-
-<br>
-
-<input
-type="text"
-id="file-search"
-placeholder="Search files..."
-style="
-width:100%;
-padding:14px;
-border-radius:14px;
-border:1px solid var(--border);
-margin-bottom:22px;
-font-size:15px;
-"
-oninput="searchFiles()">
-
-<div
-id="file-grid"
-class="file-grid"></div>
-           
+            <h2 id="cat-title">Vault Ready To Use</h2>
+            <br>
+            <input type="text" id="file-search" placeholder="Search files..." oninput="searchFiles()">
+            <div id="file-grid" class="file-grid"></div>
         </main>
-
     </div>
-
 </div>
 
-<!-- =========================
-     MODAL
-========================= -->
-
-<div id="modal"
-class="modal">
-
+<div id="modal" class="modal">
     <div class="modal-content">
-
         <div class="modal-header">
-
-            <strong id="modal-title">
-
-                Document
-
-            </strong>
-
-            <button
-            onclick="closeModal()"
-            style="
-            border:none;
-            background:var(--danger);
-            color:white;
-            padding:10px 16px;
-            border-radius:10px;
-            font-weight:bold;
-            cursor:pointer;">
-
-                CLOSE
-
-            </button>
-
+            <strong id="modal-title">Document</strong>
+            <button onclick="closeModal()" class="btn-close-modal">CLOSE</button>
         </div>
-
-<div id="pdf-render-container" style="overflow: auto; background: #333; height: 100%;">
-    <canvas id="pdf-canvas" style="display: block; margin: 0 auto;"></canvas>
+        <div id="pdf-render-container">
+            <canvas id="pdf-canvas"></canvas>
+        </div>
+    </div>
 </div>
 
+<div id="emergencyModal" class="modal">
+    <div class="modal-content-small">
+        <div class="modal-header">
+            <strong style="color: #003366;">Emergency Contact Info</strong>
+            <button onclick="closeEmergencyContact()" class="btn-close-modal">×</button>
+        </div>
+        <div class="emergency-info">
+            <div><strong>Name:</strong> Shineil Keith Mathias</div>
+            <div><strong>Phone:</strong> +91 8605586173</div>
+            <div><strong>Email:</strong> shinumaths989@gmail.com</div>
+            <div><strong>Location:</strong> Maharashtra, India</div>
+        </div>
     </div>
-
 </div>
 
 <!-- =========================
