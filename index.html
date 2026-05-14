@@ -75,7 +75,10 @@ body{
 
     color:var(--text);
 
-    overflow:hidden;
+    overflow-x:hidden;
+    overflow-y:auto;
+
+    scroll-behavior:smooth;
 
 }
 
@@ -139,6 +142,30 @@ body{
 
         opacity:1;
         transform:scale(1);
+
+    }
+
+}
+
+@keyframes dashboardEnter{
+
+    from{
+
+        opacity:0;
+
+        transform:
+            translateY(20px)
+            scale(1.02);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:
+            translateY(0)
+            scale(1);
 
     }
 
@@ -356,6 +383,13 @@ button{
 
 }
 
+.dashboard-enter{
+
+    animation:
+        dashboardEnter .7s ease;
+
+}
+
 /* =========================
    NAVBAR
 ========================= */
@@ -370,13 +404,15 @@ button{
         1px solid #dbe3ee;
 
     box-shadow:
-        0 2px 10px rgba(0,0,0,.04);
+        0 2px 12px rgba(0,0,0,.05);
+
+    position:relative;
 
     z-index:100;
 
 }
 
-/* TOP BAR */
+/* TOP DATE BAR */
 
 .passport-top-utility{
 
@@ -384,9 +420,7 @@ button{
 
     align-items:center;
 
-    justify-content:flex-start;
-
-    padding:10px 22px;
+    padding:9px 22px;
 
     background:#f8fafc;
 
@@ -395,7 +429,7 @@ button{
 
 }
 
-/* DATE TIME */
+/* DATE */
 
 #passport-datetime{
 
@@ -417,9 +451,11 @@ button{
 
     align-items:center;
 
+    padding:16px 24px;
+
     gap:20px;
 
-    padding:16px 24px;
+    flex-wrap:wrap;
 
 }
 
@@ -429,7 +465,13 @@ button{
 
     display:flex;
 
-    align-items:center;
+    flex-direction:column;
+
+    justify-content:center;
+
+    flex:1;
+
+    min-width:220px;
 
 }
 
@@ -443,9 +485,23 @@ button{
 
     letter-spacing:.5px;
 
+    line-height:1.2;
+
 }
 
-/* BUTTONS AREA */
+.brand-sub{
+
+    margin-top:4px;
+
+    font-size:13px;
+
+    color:#64748b;
+
+    letter-spacing:.5px;
+
+}
+
+/* BUTTON AREA */
 
 .nav-auth{
 
@@ -455,9 +511,11 @@ button{
 
     gap:12px;
 
+    flex-wrap:wrap;
+
 }
 
-/* NAV BUTTONS */
+/* BUTTONS */
 
 .btn-outline,
 .btn-solid{
@@ -476,7 +534,9 @@ button{
 
     cursor:pointer;
 
-    transition:.25s;
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease;
 
     white-space:nowrap;
 
@@ -506,7 +566,11 @@ button{
 .btn-outline:hover,
 .btn-solid:hover{
 
-    transform:translateY(-1px);
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 6px 16px rgba(0,0,0,.08);
 
 }
 
@@ -520,7 +584,9 @@ button{
 
     display:flex;
 
-    overflow:hidden;
+    overflow:auto;
+
+    min-height:0;
 
 }
 
@@ -668,22 +734,60 @@ button{
 
     cursor:pointer;
 
-    transition:.25s;
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease,
+        border-color .25s ease;
 
     animation:
         fadeInUp .5s ease;
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+.file-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    background:
+        linear-gradient(
+            120deg,
+            transparent,
+            rgba(255,255,255,.6),
+            transparent
+        );
+
+    transform:
+        translateX(-100%);
+
+    transition:1s;
+
+}
+
+.file-card:hover::before{
+
+    transform:
+        translateX(100%);
 
 }
 
 .file-card:hover{
 
     transform:
-        translateY(-3px);
+        translateY(-4px)
+        scale(1.02);
 
     border-color:var(--accent);
 
     box-shadow:
-        0 10px 25px rgba(37,99,235,.1);
+        0 12px 28px rgba(37,99,235,.12);
 
 }
 
@@ -901,13 +1005,6 @@ button{
 
 @media screen and (max-width:768px){
 
-    html,
-    body{
-
-        overflow:auto;
-
-    }
-
     .overlay{
 
         align-items:flex-start;
@@ -958,17 +1055,29 @@ button{
 
         flex-direction:column;
 
-        text-align:center;
+        align-items:flex-start;
+
+        gap:16px;
 
         padding:18px;
 
     }
 
+    .nav-brand{
+
+        width:100%;
+
+    }
+
     .brand-title{
 
-        font-size:19px;
+        font-size:20px;
 
-        line-height:1.4;
+    }
+
+    .brand-sub{
+
+        font-size:12px;
 
     }
 
@@ -985,8 +1094,6 @@ button{
 
         width:100%;
 
-        padding:12px;
-
     }
 
     /* MAIN */
@@ -994,8 +1101,6 @@ button{
     .main-container{
 
         flex-direction:column;
-
-        overflow:auto;
 
     }
 
