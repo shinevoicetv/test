@@ -43,6 +43,7 @@ href="favicon.png">
     --muted:#64748b;
     --border:#e2e8f0;
     --danger:#ef4444;
+
     --shadow:
         0 10px 25px rgba(0,0,0,.08);
 
@@ -65,7 +66,6 @@ body{
 
     width:100%;
     height:100%;
-    overflow:hidden;
 
     background:var(--bg);
 
@@ -75,6 +75,15 @@ body{
         sans-serif;
 
     color:var(--text);
+
+    overflow:hidden;
+
+}
+
+body{
+
+    user-select:none;
+    -webkit-user-select:none;
 
 }
 
@@ -87,6 +96,7 @@ body{
     from{
 
         opacity:0;
+
         transform:
             translateY(30px);
 
@@ -95,10 +105,12 @@ body{
     to{
 
         opacity:1;
+
         transform:
             translateY(0);
 
     }
+
 }
 
 @keyframes modalScale{
@@ -106,6 +118,7 @@ body{
     from{
 
         opacity:0;
+
         transform:
             scale(.92);
 
@@ -114,10 +127,12 @@ body{
     to{
 
         opacity:1;
+
         transform:
             scale(1);
 
     }
+
 }
 
 @keyframes floating{
@@ -142,6 +157,7 @@ body{
             translateY(0px);
 
     }
+
 }
 
 @keyframes glowPulse{
@@ -166,6 +182,7 @@ body{
             0 0 0 rgba(37,99,235,0);
 
     }
+
 }
 
 @keyframes shimmer{
@@ -183,6 +200,35 @@ body{
             200% 0;
 
     }
+
+}
+
+@keyframes dashboardEnter{
+
+    0%{
+
+        opacity:0;
+
+        transform:
+            scale(1.04)
+            translateY(20px);
+
+        filter:blur(10px);
+
+    }
+
+    100%{
+
+        opacity:1;
+
+        transform:
+            scale(1)
+            translateY(0);
+
+        filter:blur(0);
+
+    }
+
 }
 
 /* =========================
@@ -225,12 +271,6 @@ body{
 
 }
 
-   #step2{
-
-    overflow-y:auto;
-
-}
-   
 .overlay[style*="display: none"]{
 
     pointer-events:none !important;
@@ -249,7 +289,7 @@ body{
 }
 
 /* =========================
-   CARD
+   STEP CARD
 ========================= */
 
 .step-card{
@@ -262,7 +302,8 @@ body{
 
     overflow-y:auto;
 
-    background:rgba(255,255,255,.96);
+    background:
+        rgba(255,255,255,.96);
 
     backdrop-filter:blur(18px);
 
@@ -336,7 +377,7 @@ h2{
 
     margin-bottom:28px;
 
-    line-height:1.6;
+    line-height:1.7;
 
 }
 
@@ -453,7 +494,7 @@ button{
 
     line-height:1.8;
 
-    font-size:.9rem;
+    font-size:.92rem;
 
     color:#334155;
 
@@ -475,46 +516,194 @@ button{
 
 }
 
-/* =========================
-   NAVBAR
-========================= */
+.dashboard-enter{
 
-#live-clock{
-
-    font-family:monospace;
-
-    background:#eff6ff;
-
-    color:var(--accent);
-
-    padding:7px 14px;
-
-    border-radius:10px;
-
-    font-weight:bold;
+    animation:
+        dashboardEnter 1s
+        cubic-bezier(.22,1,.36,1);
 
 }
 
-.logout-btn{
+/* =========================
+   PASSPORT NAVBAR
+========================= */
+
+.passport-navbar{
+
+    width:100%;
+
+    background:white;
+
+    border-bottom:
+        1px solid #dbe3ee;
+
+    box-shadow:
+        0 4px 18px rgba(0,0,0,.05);
+
+}
+
+/* TOP BAR */
+
+.passport-top-utility{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:10px 28px;
+
+    background:#f8fafc;
+
+    border-bottom:
+        1px solid #e2e8f0;
+
+    font-size:13px;
+
+    color:#64748b;
+
+}
+
+.utility-right{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    flex-wrap:wrap;
+
+}
+
+/* MAIN NAV */
+
+.passport-main-nav{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:22px 30px;
+
+    background:white;
+
+}
+
+/* BRAND */
+
+.nav-brand{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:16px;
+
+}
+
+.brand-text{
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.brand-title{
+
+    font-size:30px;
+
+    font-weight:900;
+
+    color:#1d4ed8;
+
+    letter-spacing:.5px;
+
+}
+
+.brand-sub{
+
+    margin-top:5px;
+
+    font-size:12px;
+
+    color:#64748b;
+
+    letter-spacing:.8px;
+
+}
+
+/* BUTTONS AREA */
+
+.nav-auth{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+}
+
+/* BUTTONS */
+
+.btn-outline,
+.btn-solid{
 
     border:none;
 
-    background:var(--danger);
+    padding:13px 22px;
+
+    border-radius:14px;
+
+    font-weight:800;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    font-size:14px;
+
+}
+
+.btn-outline{
+
+    background:#eff6ff;
+
+    color:#2563eb;
+
+}
+
+.btn-solid{
+
+    background:
+        linear-gradient(
+            135deg,
+            #ef4444,
+            #dc2626
+        );
 
     color:white;
 
-    padding:10px 16px;
+}
 
-    border-radius:10px;
+.btn-outline:hover,
+.btn-solid:hover{
 
-    font-weight:bold;
+    transform:
+        translateY(-2px);
 
-    cursor:pointer;
+    box-shadow:
+        0 8px 20px rgba(0,0,0,.08);
 
 }
 
 /* =========================
-   MAIN
+   MAIN LAYOUT
 ========================= */
 
 .main-container{
@@ -706,12 +895,9 @@ button{
 
 .file-card:hover{
 
-   box-shadow:
-    0 20px 35px rgba(37,99,235,.18);
-
-transform:
-    translateY(-4px)
-    scale(1.02);
+    transform:
+        translateY(-4px)
+        scale(1.02);
 
     border-color:var(--accent);
 
@@ -781,15 +967,122 @@ transform:
 
 }
 
-#viewer{
-
-    width:100%;
-
-    height:100%;
+.btn-close-modal{
 
     border:none;
 
+    background:var(--danger);
+
+    color:white;
+
+    padding:10px 16px;
+
+    border-radius:10px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+}
+
+/* PDF */
+
+#pdf-render-container{
+
+    flex:1;
+
+    overflow:auto;
+
     background:#111827;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:flex-start;
+
+    padding:25px;
+
+}
+
+#pdf-canvas{
+
+    max-width:100%;
+
+    background:white;
+
+    border-radius:10px;
+
+}
+
+/* =========================
+   EMERGENCY CONTACT
+========================= */
+
+.emergency-info{
+
+    padding:30px;
+
+    background:white;
+
+    line-height:2.1;
+
+    font-size:16px;
+
+    color:#334155;
+
+}
+
+.emergency-info div{
+
+    padding:10px 0;
+
+    border-bottom:
+        1px solid #f1f5f9;
+
+}
+
+.emergency-info div:last-child{
+
+    border-bottom:none;
+
+}
+
+/* =========================
+   WATERMARK
+========================= */
+
+.watermark{
+
+    position:fixed;
+
+    inset:0;
+
+    display:none;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:42px;
+
+    font-weight:900;
+
+    letter-spacing:3px;
+
+    color:#000;
+
+    opacity:.05;
+
+    transform:rotate(-32deg);
+
+    pointer-events:none;
+
+    z-index:9999;
+
+    text-align:center;
+
+    user-select:none;
 
 }
 
@@ -824,199 +1117,83 @@ transform:
 
     }
 
-/* =========================
-   PASSPORT NAVBAR
-========================= */
-
-.passport-navbar{
-
-    width:100%;
-
-    display:flex;
-    flex-direction:column;
-
-    background:#fff;
-
-    border-bottom:
-    1px solid #d9d9d9;
-
-    box-shadow:
-    0 2px 10px rgba(0,0,0,.05);
-
-}
-
-/* =========================
-   TOP BAR
-========================= */
-
-.passport-topbar{
-
-    height:64px;
-
-    background:
-    linear-gradient(
-        90deg,
-        #f7e9c3,
-        #f3dfae
-    );
+.passport-top-utility{
 
     display:flex;
 
-    align-items:center;
     justify-content:space-between;
 
-    padding:0 36px;
-
-    border-bottom:
-    1px solid #e5d3a1;
-
-}
-
-/* DATE TIME */
-
-#passport-datetime{
-
-    font-size:17px;
-
-    font-weight:500;
-
-    color:#1f2937;
-
-    letter-spacing:.2px;
-
-}
-
-/* BUTTON AREA */
-
-.passport-actions{
-
-    display:flex;
-
     align-items:center;
 
-    gap:20px;
+    padding:12px 28px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #eff6ff,
+            #f8fafc
+        );
+
+    border-bottom:
+        1px solid #dbeafe;
+
+    font-size:13px;
+
+    color:#475569;
 
 }
 
-/* BUTTONS */
+/* LIVE DATE TIME */
 
-.passport-btn{
-
-    border:none;
-
-    padding:14px 28px;
-
-    border-radius:12px;
+#passport-datetime{
 
     font-size:15px;
 
     font-weight:800;
 
-    color:white;
-
-    cursor:pointer;
-
-    transition:.25s ease;
-
-    box-shadow:
-    0 6px 16px rgba(0,0,0,.12);
-
-}
-
-/* BLUE BUTTON */
-
-.access-btn{
-
-    background:
-    linear-gradient(
-        135deg,
-        #2563eb,
-        #1d4ed8
-    );
-
-}
-
-/* RED BUTTON */
-
-.emergency-btn{
-
-    background:
-    linear-gradient(
-        135deg,
-        #ef4444,
-        #dc2626
-    );
-
-}
-
-/* HOVER */
-
-.passport-btn:hover{
-
-    transform:
-    translateY(-2px);
-
-    filter:brightness(1.05);
-
-}
-
-/* =========================
-   NAME BAR
-========================= */
-
-.passport-mainbar{
-
-    height:86px;
+    color:#1d4ed8;
 
     background:white;
 
-    display:flex;
+    padding:10px 16px;
 
-    align-items:center;
+    border-radius:12px;
 
-    padding:0 38px;
+    border:
+        1px solid #dbeafe;
 
-}
+    box-shadow:
+        0 4px 12px rgba(37,99,235,.08);
 
-/* NAME */
-
-.passport-mainbar .nav-left{
-
-    font-size:44px;
-
-    font-weight:900;
-
-    color:#1d4ed8;
-
-    letter-spacing:.8px;
-
-    text-transform:uppercase;
+    letter-spacing:.3px;
 
 }
 
-/* =========================
-   MOBILE
-========================= */
-
-@media screen and (max-width:768px){
-
-    .passport-topbar{
+    .passport-main-nav{
 
         flex-direction:column;
 
-        justify-content:center;
-
-        gap:14px;
-
-        height:auto;
-
-        padding:18px;
+        gap:20px;
 
         text-align:center;
 
+        padding:22px 18px;
+
     }
 
-    .passport-actions{
+    .brand-title{
+
+        font-size:22px;
+
+    }
+
+    .brand-sub{
+
+        font-size:11px;
+
+    }
+
+    .nav-auth{
 
         width:100%;
 
@@ -1024,31 +1201,12 @@ transform:
 
     }
 
-    .passport-btn{
+    .btn-outline,
+    .btn-solid{
 
         width:100%;
 
     }
-
-    .passport-mainbar{
-
-        justify-content:center;
-
-        text-align:center;
-
-        padding:20px;
-
-    }
-
-    .passport-mainbar .nav-left{
-
-        font-size:24px;
-
-        line-height:1.4;
-
-    }
-
-}
 
     .main-container{
 
@@ -1056,6 +1214,18 @@ transform:
 
     }
 
+    .sidebar{
+
+        width:100%;
+
+        overflow-x:auto;
+
+        border-right:none;
+
+        border-bottom:
+            1px solid var(--border);
+
+    }
 
     #cat-list{
 
@@ -1102,79 +1272,49 @@ transform:
 
 }
 
-   @keyframes dashboardEnter {
+   .emergency-info{
 
-    0% {
+    padding:30px;
 
-        opacity: 0;
+    background:white;
 
-        transform:
-            scale(1.04)
-            translateY(20px);
+    line-height:2.1;
 
-        filter: blur(10px);
+    font-size:16px;
 
-    }
+    color:#334155;
 
-    100% {
-
-        opacity: 1;
-
-        transform:
-            scale(1)
-            translateY(0);
-
-        filter: blur(0);
-
-    }
 }
 
-.dashboard-enter {
+.emergency-info div{
+
+    padding:10px 0;
+
+    border-bottom:1px solid #f1f5f9;
+
+}
+
+.emergency-info div:last-child{
+
+    border-bottom:none;
+
+}
+   .modal-content-small{
+
+    width:92%;
+
+    max-width:500px;
+
+    margin:80px auto;
+
+    background:white;
+
+    border-radius:24px;
+
+    overflow:hidden;
 
     animation:
-        dashboardEnter 1s
-        cubic-bezier(.22,1,.36,1);
-
-}
-
-   body{
-
-    user-select:none;
-    -webkit-user-select:none;
-
-}
-
-.watermark{
-
-    position:fixed;
-
-    inset:0;
-
-    display:none;
-
-    justify-content:center;
-
-    align-items:center;
-
-    font-size:42px;
-
-    font-weight:900;
-
-    letter-spacing:3px;
-
-    color:#000;
-
-    opacity:.05;
-
-    transform:rotate(-32deg);
-
-    pointer-events:none;
-
-    z-index:10002;
-
-    text-align:center;
-
-    user-select:none;
+        modalScale .35s ease;
 
 }
 </style>
@@ -1439,24 +1579,7 @@ style="display:none;">
             <strong id="modal-title">Document</strong>
             <button onclick="closeModal()" class="btn-close-modal">CLOSE</button>
         </div>
-        <div id="pdf-render-container">
-            <canvas id="pdf-canvas"></canvas>
-        </div>
-    </div>
-</div>
-
-<div id="emergencyModal" class="modal">
-    <div class="modal-content-small">
-        <div class="modal-header">
-            <strong style="color: #003366;">Emergency Contact Info</strong>
-            <button onclick="closeEmergencyContact()" class="btn-close-modal">×</button>
-        </div>
-        <div class="emergency-info">
-            <div><strong>Name:</strong> Shineil Keith Mathias</div>
-            <div><strong>Phone:</strong> +91 8605586173</div>
-            <div><strong>Email:</strong> shinumaths989@gmail.com</div>
-            <div><strong>Location:</strong> Maharashtra, India</div>
-        </div>
+<div id="pdf-render-container"></div>
     </div>
 </div>
 
@@ -1516,13 +1639,7 @@ document.addEventListener(
 
 function updateClock(){
 
-    const now =
-    new Date();
-
-    document.getElementById(
-    'live-clock').textContent =
-
-    now.toLocaleString();
+    return;
 
 }
 
@@ -2988,68 +3105,75 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 const loadingTask = pdfjsLib.getDocument({data: decryptedBuffer});
 const pdf = await loadingTask.promise;
 
-// Render the first page
-const page = await pdf.getPage(1);
-const viewport = page.getViewport({scale: 1.5});
-const canvas = document.getElementById('pdf-canvas');
-const context = canvas.getContext('2d');
+// PDF CONTAINER
 
-canvas.height = viewport.height;
-canvas.width = viewport.width;
+const container =
+document.getElementById(
+'pdf-render-container'
+);
 
-const renderContext = {
-    canvasContext: context,
-    viewport: viewport
-};
+container.innerHTML = "";
 
-// Start rendering
-await page.render(renderContext).promise;
+// RENDER ALL PAGES
+
+for(
+    let pageNum = 1;
+    pageNum <= pdf.numPages;
+    pageNum++
+){
+
+    const page =
+    await pdf.getPage(pageNum);
+
+    const viewport =
+    page.getViewport({
+        scale:1.5
+    });
+
+    // CREATE CANVAS
+
+    const canvas =
+    document.createElement(
+    'canvas'
+    );
+
+    canvas.style.width = "100%";
+    canvas.style.maxWidth = "900px";
+    canvas.style.marginBottom = "25px";
+    canvas.style.borderRadius = "12px";
+    canvas.style.background = "white";
+    canvas.style.boxShadow =
+    "0 8px 20px rgba(0,0,0,.08)";
+
+    const context =
+    canvas.getContext('2d');
+
+    canvas.height =
+    viewport.height;
+
+    canvas.width =
+    viewport.width;
+
+    container.appendChild(
+    canvas
+    );
+
+    // RENDER PAGE
+
+    await page.render({
+
+        canvasContext:context,
+
+        viewport:viewport
+
+    }).promise;
+
+}
 
 // Show the modal
 document.getElementById('modal').style.display = 'block';
 document.getElementById('modal-title').textContent = displayName;
-
-        currentBlobUrl =
-        URL.createObjectURL(blob);
-
-        document.getElementById(
-        'modal-title'
-        ).textContent =
-        displayName;
-
-        document.getElementById(
-        'modal'
-        ).style.display =
-        'block';
-
-        document.getElementById(
-        'watermark'
-        ).style.display =
-        'flex';
-
-        const viewer =
-        document.getElementById(
-        'viewer'
-        );
-
-        if(
-        /Android|iPhone|iPad/i
-        .test(navigator.userAgent)
-        ){
-
-            viewer.removeAttribute(
-            'src'
-            );
-
-            window.open(
-                currentBlobUrl,
-                '_blank'
-            );
-
-        }else{
-
-            viewer.src =
-            currentBlobUrl;
+       
         }
 
     }catch(e){
@@ -3068,9 +3192,6 @@ document.getElementById('modal-title').textContent = displayName;
 ========================= */
 
 function closeModal(){
-
-    document.getElementById(
-    'viewer').src = "";
 
     document.getElementById(
     'modal').style.display =
@@ -3751,30 +3872,44 @@ initializeAppCheck(app, {
 
 function updatePassportTime(){
 
-    const now = new Date();
+    const now =
+    new Date();
 
     const formatted =
     now.toLocaleString(
-        "en-US",
+        "en-IN",
         {
-            weekday:"short",
-            month:"short",
-            day:"numeric",
+
+            weekday:"long",
+
+            day:"2-digit",
+
+            month:"long",
+
             year:"numeric",
+
             hour:"2-digit",
+
             minute:"2-digit",
+
             second:"2-digit",
-            hour12:false
+
+            hour12:true
+
         }
     );
 
     document.getElementById(
-        "passport-datetime"
-    ).innerHTML = formatted;
+    "passport-datetime"
+    ).innerHTML =
+    `🕒 ${formatted}`;
 
 }
 
-setInterval(updatePassportTime,1000);
+setInterval(
+    updatePassportTime,
+    1000
+);
 
 updatePassportTime();
 
