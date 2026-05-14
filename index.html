@@ -3015,18 +3015,27 @@ displayName){
             encryptedData
         );
 
-// ... after decryption logic ...
-const decryptedBuffer = decrypted; // This is your decrypted array buffer
+// =========================
+// PDF.JS
+// =========================
 
-// Initialize PDF.js
-const pdfjsLib = window['pdfjs-dist/build/pdf'];
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const pdfjsLib =
+window['pdfjs-dist/build/pdf'];
 
-// Load the document from memory (not a link!)
-const loadingTask = pdfjsLib.getDocument({data: decryptedBuffer});
-const pdf = await loadingTask.promise;
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// PDF CONTAINER
+// LOAD PDF
+
+const loadingTask =
+pdfjsLib.getDocument({
+    data: decrypted
+});
+
+const pdf =
+await loadingTask.promise;
+
+// CONTAINER
 
 const container =
 document.getElementById(
@@ -3035,65 +3044,227 @@ document.getElementById(
 
 container.innerHTML = "";
 
-// RENDER ALL PAGES
+// ZOOM LEVEL
 
-for(
-    let pageNum = 1;
-    pageNum <= pdf.numPages;
-    pageNum++
-){
+let currentZoom = 1.5;
 
-    const page =
-    await pdf.getPage(pageNum);
+// =========================
+// TOOLBAR
+// =========================
 
-    const viewport =
-    page.getViewport({
-        scale:1.5
-    });
+const toolbar =
+document.createElement('div');
 
-    // CREATE CANVAS
+toolbar.style.position = "sticky";
+toolbar.style.top = "0";
+toolbar.style.zIndex = "50";
 
-    const canvas =
-    document.createElement(
-    'canvas'
-    );
+toolbar.style.display = "flex";
+toolbar.style.gap = "12px";
 
-    canvas.style.width = "100%";
-    canvas.style.maxWidth = "900px";
-    canvas.style.marginBottom = "25px";
-    canvas.style.borderRadius = "12px";
-    canvas.style.background = "white";
-    canvas.style.boxShadow =
-    "0 8px 20px rgba(0,0,0,.08)";
+toolbar.style.justifyContent = "center";
 
-    const context =
-    canvas.getContext('2d');
+toolbar.style.padding = "14px";
 
-    canvas.height =
-    viewport.height;
+toolbar.style.background = "#e5e7eb";
 
-    canvas.width =
-    viewport.width;
+toolbar.style.borderBottom =
+"1px solid #cbd5e1";
 
-    container.appendChild(
-    canvas
-    );
+// ZOOM OUT
 
-    // RENDER PAGE
+const zoomOutBtn =
+document.createElement('button');
 
-    await page.render({
+zoomOutBtn.innerText = "− Zoom Out";
 
-        canvasContext:context,
+// ZOOM IN
 
-        viewport:viewport
+const zoomInBtn =
+document.createElement('button');
 
-    }).promise;
+zoomInBtn.innerText = "+ Zoom In";
+
+// BUTTON STYLE
+
+[zoomOutBtn, zoomInBtn]
+.forEach(btn=>{
+
+    btn.style.padding =
+    "10px 18px";
+
+    btn.style.border = "none";
+
+    btn.style.borderRadius =
+    "12px";
+
+    btn.style.cursor =
+    "pointer";
+
+    btn.style.fontWeight =
+    "700";
+
+    btn.style.background =
+    "#2563eb";
+
+    btn.style.color =
+    "white";
+
+});
+
+// ADD TO TOOLBAR
+
+toolbar.appendChild(
+zoomOutBtn
+);
+
+toolbar.appendChild(
+zoomInBtn
+);
+
+container.appendChild(
+toolbar
+);
+
+// =========================
+// RENDER FUNCTION
+// =========================
+
+async function renderAllPages(){
+
+    // REMOVE OLD CANVASES
+
+    container
+    .querySelectorAll('.pdf-page')
+    .forEach(el=>el.remove());
+
+    // LOOP PAGES
+
+    for(
+        let pageNum = 1;
+        pageNum <= pdf.numPages;
+        pageNum++
+    ){
+
+        const page =
+        await pdf.getPage(
+            pageNum
+        );
+
+        const viewport =
+        page.getViewport({
+            scale:currentZoom
+        });
+
+        // PAGE WRAPPER
+
+        const pageWrap =
+        document.createElement(
+        'div'
+        );
+
+        pageWrap.className =
+        "pdf-page";
+
+        pageWrap.style.marginBottom =
+        "24px";
+
+        pageWrap.style.background =
+        "white";
+
+        pageWrap.style.borderRadius =
+        "14px";
+
+        pageWrap.style.boxShadow =
+        "0 8px 22px rgba(0,0,0,.08)";
+
+        pageWrap.style.padding =
+        "10px";
+
+        // CANVAS
+
+        const canvas =
+        document.createElement(
+        'canvas'
+        );
+
+        const context =
+        canvas.getContext('2d');
+
+        canvas.width =
+        viewport.width;
+
+        canvas.height =
+        viewport.height;
+
+        canvas.style.width =
+        "100%";
+
+        canvas.style.borderRadius =
+        "10px";
+
+        pageWrap.appendChild(
+        canvas
+        );
+
+        container.appendChild(
+        pageWrap
+        );
+
+        // RENDER
+
+        await page.render({
+
+            canvasContext:context,
+
+            viewport:viewport
+
+        }).promise;
+
+    }
 
 }
 
-// Show the modal
-document.getElementById('modal').style.display = 'block';
-document.getElementById('modal-title').textContent = displayName;
+// INITIAL RENDER
+
+await renderAllPages();
+
+// =========================
+// ZOOM EVENTS
+// =========================
+
+zoomInBtn.onclick =
+async ()=>{
+
+    currentZoom += 0.2;
+
+    await renderAllPages();
+
+};
+
+zoomOutBtn.onclick =
+async ()=>{
+
+    if(currentZoom > 0.6){
+
+        currentZoom -= 0.2;
+
+        await renderAllPages();
+
+    }
+
+};
+
+// SHOW MODAL
+
+document.getElementById(
+'modal'
+).style.display = 'block';
+
+document.getElementById(
+'modal-title'
+).textContent =
+displayName;
        
 
     }catch(e){
