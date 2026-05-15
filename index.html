@@ -3297,24 +3297,13 @@ pdfjsLib.getDocument({
     data: decrypted
 });
 
-/* =========================
-   START OCR
-========================= */
-
-const pdf =
+       const pdf =
 await loadingTask.promise;
 
-const pdfBlob =
+const blob =
 new Blob(
     [decrypted],
     {type:"application/pdf"}
-);
-
-console.log("OCR CALLING");
-
-processAndStoreOCR(
-    pdfBlob,
-    displayName
 );
 
 // CONTAINER
@@ -3609,6 +3598,17 @@ thumbWrap
 // INITIAL RENDER
 
 await renderAllPages();
+
+/* =========================
+   START OCR
+========================= */
+
+console.log("OCR CALLING");
+
+await processAndStoreOCR(
+    blob,
+    displayName
+);
 
 // =========================
 // ZOOM EVENTS
