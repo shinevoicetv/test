@@ -1669,8 +1669,12 @@ style="display:none;">
 
             <h2 id="cat-title">Vault Ready To Use</h2>
             <br>
-            <input type="text" id="file-search" placeholder="Search files..." oninput="searchFiles()">
-            <div id="file-grid" class="file-grid"></div>
+<input
+type="text"
+id="unified-search"
+placeholder="Search files and document text..."
+oninput="unifiedSearch()">
+           <div id="file-grid" class="file-grid"></div>
         </main>
     </div>
 </div>
@@ -1694,20 +1698,6 @@ style="display:none;">
 </div>
     </div>
 </div>
-
-   <input
-   type="text"
-   id="searchBox"
-   placeholder="Search documents..."
->
-
-<button onclick="
-searchOCR(
-document.getElementById('searchBox').value
-)
-">
-Search
-</button>
 
 <!-- =========================
      SCRIPT
@@ -2953,14 +2943,12 @@ category){
 
 }
 
-function searchFiles(){
+async function unifiedSearch(){
 
     const query =
     document.getElementById(
-    'file-search'
-    ).value
-    .toLowerCase()
-    .trim();
+        'unified-search'
+    ).value.toLowerCase().trim();
 
     if(!query){
 
@@ -2977,6 +2965,8 @@ function searchFiles(){
     }
 
     let results = [];
+
+    // FILE NAME SEARCH
 
     Object.keys(allFilesData)
     .forEach(category=>{
@@ -2995,10 +2985,9 @@ function searchFiles(){
             ){
 
                 results.push({
-
                     ...file,
-                    category
-
+                    category,
+                    source:"Filename"
                 });
 
             }
@@ -3007,14 +2996,74 @@ function searchFiles(){
 
     });
 
+    // OCR SEARCH
+
+    const transaction =
+    db.transaction(
+        ["ocrStore"],
+        "readonly"
+    );
+
+    const store =
+    transaction.objectStore(
+        "ocrStore"
+    );
+
+    const request =
+    store.getAll();
+
+    request.onsuccess = function(){
+
+        const ocrFiles =
+        request.result;
+
+        ocrFiles.forEach(file=>{
+
+            if(
+                file.text &&
+                file.text
+                .toLowerCase()
+                .includes(query)
+            ){
+
+                const exists =
+                results.find(
+                    r => r.name === file.id
+                );
+
+                if(!exists){
+
+                    results.push({
+
+                        name:file.id,
+                        file:file.id,
+                        category:"OCR Match",
+                        source:"OCR Text"
+
+                    });
+
+                }
+
+            }
+
+        });
+
+        renderSearchResults(results);
+
+    };
+
+}
+
+   function renderSearchResults(results){
+
     document.getElementById(
-    'cat-title'
+        'cat-title'
     ).textContent =
     `Search Results (${results.length})`;
 
     const grid =
     document.getElementById(
-    'file-grid'
+        'file-grid'
     );
 
     grid.innerHTML = "";
@@ -3028,7 +3077,7 @@ function searchFiles(){
         padding:40px;
         background:white;
         border-radius:20px;">
-            No files found.
+            No matching files found.
         </div>
         `;
 
@@ -3038,9 +3087,7 @@ function searchFiles(){
     results.forEach(file=>{
 
         const card =
-        document.createElement(
-        'div'
-        );
+        document.createElement('div');
 
         card.className =
         'file-card';
@@ -3064,6 +3111,14 @@ function searchFiles(){
         color:var(--muted);
         font-size:.85rem;">
             ${file.category}
+        </div>
+
+        <div style="
+        margin-top:6px;
+        color:#2563eb;
+        font-size:.75rem;
+        font-weight:700;">
+            ${file.source}
         </div>
 
         `;
@@ -3603,15 +3658,15 @@ async ()=>{
             return;
         }
 
-        const blob =
-        new Blob(
-            [decrypted],
-            {type:"application/pdf"}
-        );
+const blob =
+new Blob(
+    [decrypted],
+    {type:"application/pdf"}
+);
 
-       await processAndStoreOCR(
-   decryptedBlob,
-   fileName
+await processAndStoreOCR(
+    blob,
+    displayName
 );
 
         const url =
