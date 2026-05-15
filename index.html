@@ -3297,8 +3297,25 @@ pdfjsLib.getDocument({
     data: decrypted
 });
 
+/* =========================
+   START OCR
+========================= */
+
 const pdf =
 await loadingTask.promise;
+
+const pdfBlob =
+new Blob(
+    [decrypted],
+    {type:"application/pdf"}
+);
+
+console.log("OCR CALLING");
+
+processAndStoreOCR(
+    pdfBlob,
+    displayName
+);
 
 // CONTAINER
 
@@ -4674,6 +4691,12 @@ function getOCR(fileName) {
 
 async function processAndStoreOCR(blob, fileName) {
 
+   /* =========================
+   OCR START LOG
+========================= */
+
+console.log("OCR STARTED");
+   
     const existing = await getOCR(fileName);
 
     if (existing) {
