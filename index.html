@@ -27,6 +27,12 @@ content="width=device-width, initial-scale=1.0">
 content="no-store, no-cache, must-revalidate">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+
+   <script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+</script>
+   
    <meta
 name="referrer"
 content="strict-origin-when-cross-origin">
@@ -3036,7 +3042,9 @@ async function unifiedSearch(){
                     results.push({
 
                         name:file.id,
-                        file:file.id,
+                        file:file.id.endsWith(".pdf")
+                        ? file.id
+                        : file.id + ".pdf",
                         category:"OCR Match",
                         source:"OCR Text"
 
@@ -3279,8 +3287,7 @@ displayName){
 // PDF.JS
 // =========================
 
-const pdfjsLib =
-window['pdfjs-dist/build/pdf'];
+const pdfjsLib = window.pdfjsLib;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -4736,51 +4743,6 @@ async function processAndStoreOCR(blob, fileName) {
     saveOCR(fileName, fullText);
 
     console.log("OCR Finished");
-}
-
-
-// =======================
-// SEARCH OCR
-// =======================
-
-function searchOCR(searchTerm) {
-
-    const transaction =
-        db.transaction(
-            ["ocrStore"],
-            "readonly"
-        );
-
-    const store =
-        transaction.objectStore("ocrStore");
-
-    const request =
-        store.getAll();
-
-    request.onsuccess = function() {
-
-        const files =
-            request.result;
-
-        console.clear();
-
-        files.forEach(file => {
-
-            if (
-                file.text
-                .toLowerCase()
-                .includes(
-                    searchTerm.toLowerCase()
-                )
-            ) {
-
-                console.log(
-                    "Found in:",
-                    file.id
-                );
-            }
-        });
-    };
 }
 
 </script>
