@@ -3682,13 +3682,9 @@ async ()=>{
             return;
         }
 
-const blob =
-new Blob(
-    [decrypted],
-    {type:"application/pdf"}
-);
+console.log("OCR CALLING");
 
-await processAndStoreOCR(
+processAndStoreOCR(
     blob,
     displayName
 );
