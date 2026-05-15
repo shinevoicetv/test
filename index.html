@@ -3315,10 +3315,32 @@ await loadingTask.promise;
 const pdfBlob =
 new Blob(
     [decrypted],
-    {type:"application/pdf"}
+    {
+        type:"application/pdf"
+    }
 );
 
-       window.lastOpenedBlob =
+// DEBUG
+console.log(
+"PDF blob size:",
+pdfBlob.size
+);
+
+// stop if empty
+
+if(
+!pdfBlob ||
+pdfBlob.size===0
+){
+
+alert(
+"PDF failed to load."
+);
+
+return;
+}
+
+window.lastOpenedBlob =
 pdfBlob;
 
 console.log("OCR CALLING");
@@ -4786,140 +4808,105 @@ console.log("OCR STARTED");
    EXTRACT PDF TEXT + OCR
 ========================= */
 
-async function getDocumentText(pdfBlob){
+async function getDocumentText(
+pdfBlob
+){
 
-    try{
+try{
 
-        const buffer =
-        await pdfBlob.arrayBuffer();
+if(
+!pdfBlob
+){
 
-        const pdf =
-        await pdfjsLib.getDocument({
-            data:buffer
-        }).promise;
+throw new Error(
+"No PDF found"
+);
 
-        let extractedText = "";
+}
 
-        // -------------------
-        // TRY NORMAL PDF TEXT
-        // -------------------
+if(
+pdfBlob.size===0
+){
 
-        for(
-            let i=1;
-            i<=pdf.numPages;
-            i++
-        ){
+throw new Error(
+"Empty PDF"
+);
 
-            const page =
-            await pdf.getPage(i);
+}
 
-            const content =
-            await page.getTextContent();
+const buffer =
+await pdfBlob.arrayBuffer();
 
-            const pageText =
-            content.items
-            .map(item=>item.str)
-            .join(" ");
+if(
+buffer.byteLength===0
+){
 
-            extractedText +=
-            pageText + "\n";
+throw new Error(
+"Zero-byte buffer"
+);
 
-        }
+}
 
-        console.log(
-        "Normal extracted text:",
-        extractedText.length
-        );
+const pdf =
+await pdfjsLib
+.getDocument({
 
-        // enough text found
+data:buffer
 
-        if(
-            extractedText.trim()
-            .length > 100
-        ){
+}).promise;
 
-            return extractedText;
 
-        }
+let text="";
 
-        console.log(
-        "Scanned PDF detected → OCR"
-        );
+for(
+let i=1;
+i<=pdf.numPages;
+i++
+){
 
-        // -------------------
-        // OCR FALLBACK
-        // -------------------
+const page =
+await pdf.getPage(i);
 
-        const worker =
-        await Tesseract.createWorker(
-            'eng+deu+hin+mar'
-        );
+const content =
+await page.getTextContent();
 
-        let ocrText = "";
+text +=
 
-        for(
-            let pageNum=1;
-            pageNum<=pdf.numPages;
-            pageNum++
-        ){
+content.items
+.map(
+x=>x.str
+)
+.join(" ")
 
-            const page =
-            await pdf.getPage(
-                pageNum
-            );
++"\n";
 
-            const viewport =
-            page.getViewport({
-                scale:2
-            });
+}
 
-            const canvas =
-            document.createElement(
-            "canvas"
-            );
 
-            canvas.width =
-            viewport.width;
+// If scanned PDF
 
-            canvas.height =
-            viewport.height;
+if(
+text.trim()
+.length<50
+){
 
-            const ctx =
-            canvas.getContext("2d");
+return
+"[Scanned document detected]";
 
-            await page.render({
+}
 
-                canvasContext:ctx,
+return text;
 
-                viewport
+}catch(err){
 
-            }).promise;
+console.error(
+"Text extraction error",
+err
+);
 
-            const result =
-            await worker.recognize(
-                canvas
-            );
+return "";
 
-            ocrText +=
-            result.data.text +
-            "\n";
-
-        }
-
-        await worker.terminate();
-
-        return ocrText;
-
-    }catch(err){
-
-        console.error(
-        "Text extraction error",
-        err
-        );
-
-        return "";
-
-    }
+}
 
 }
 
@@ -4961,6 +4948,22 @@ const docText =
 await getDocumentText(
 window.lastOpenedBlob
 );
+
+         console.log(
+"Extracted text:",
+docText
+);
+
+if(
+!docText
+){
+
+alert(
+"Open a PDF first"
+);
+
+return;
+}
 
 const res =
 await fetch(
