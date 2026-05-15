@@ -1640,6 +1640,14 @@ style="display:none;">
 
         <div class="nav-auth">
 
+           <button
+class="btn-outline"
+onclick="openAI()">
+
+AI ASSISTANT
+
+</button>
+           
             <button class="btn-outline" onclick="openLogs()">
                 ACCESS LOG
             </button>
@@ -3310,6 +3318,9 @@ new Blob(
     {type:"application/pdf"}
 );
 
+       window.lastOpenedBlob =
+pdfBlob;
+
 console.log("OCR CALLING");
 
 processAndStoreOCR(
@@ -4771,6 +4782,285 @@ console.log("OCR STARTED");
     console.log("OCR Finished");
 }
 
+      /* =========================
+   EXTRACT PDF TEXT + OCR
+========================= */
+
+async function getDocumentText(pdfBlob){
+
+    try{
+
+        const buffer =
+        await pdfBlob.arrayBuffer();
+
+        const pdf =
+        await pdfjsLib.getDocument({
+            data:buffer
+        }).promise;
+
+        let extractedText = "";
+
+        // -------------------
+        // TRY NORMAL PDF TEXT
+        // -------------------
+
+        for(
+            let i=1;
+            i<=pdf.numPages;
+            i++
+        ){
+
+            const page =
+            await pdf.getPage(i);
+
+            const content =
+            await page.getTextContent();
+
+            const pageText =
+            content.items
+            .map(item=>item.str)
+            .join(" ");
+
+            extractedText +=
+            pageText + "\n";
+
+        }
+
+        console.log(
+        "Normal extracted text:",
+        extractedText.length
+        );
+
+        // enough text found
+
+        if(
+            extractedText.trim()
+            .length > 100
+        ){
+
+            return extractedText;
+
+        }
+
+        console.log(
+        "Scanned PDF detected → OCR"
+        );
+
+        // -------------------
+        // OCR FALLBACK
+        // -------------------
+
+        const worker =
+        await Tesseract.createWorker(
+            'eng+deu+hin+mar'
+        );
+
+        let ocrText = "";
+
+        for(
+            let pageNum=1;
+            pageNum<=pdf.numPages;
+            pageNum++
+        ){
+
+            const page =
+            await pdf.getPage(
+                pageNum
+            );
+
+            const viewport =
+            page.getViewport({
+                scale:2
+            });
+
+            const canvas =
+            document.createElement(
+            "canvas"
+            );
+
+            canvas.width =
+            viewport.width;
+
+            canvas.height =
+            viewport.height;
+
+            const ctx =
+            canvas.getContext("2d");
+
+            await page.render({
+
+                canvasContext:ctx,
+
+                viewport
+
+            }).promise;
+
+            const result =
+            await worker.recognize(
+                canvas
+            );
+
+            ocrText +=
+            result.data.text +
+            "\n";
+
+        }
+
+        await worker.terminate();
+
+        return ocrText;
+
+    }catch(err){
+
+        console.error(
+        "Text extraction error",
+        err
+        );
+
+        return "";
+
+    }
+
+}
+
+      function openAI(){
+
+document.getElementById(
+"aiModal"
+).style.display =
+"block";
+
+}
+
+function closeAI(){
+
+document.getElementById(
+"aiModal"
+).style.display =
+"none";
+
+}
+
+      async function askAI(){
+
+const question =
+document.getElementById(
+"aiInput"
+).value;
+
+if(!window.lastOpenedBlob){
+
+alert(
+"Open a document first"
+);
+
+return;
+}
+
+const docText =
+await getDocumentText(
+window.lastOpenedBlob
+);
+
+const res =
+await fetch(
+"https://YOUR-WORKER/ai",
+{
+
+method:"POST",
+
+headers:{
+"Content-Type":
+"application/json"
+},
+
+body:JSON.stringify({
+
+question,
+
+context:docText
+
+})
+
+});
+
+const data =
+await res.json();
+
+document.getElementById(
+"aiMessages"
+).innerHTML += `
+
+<div>
+
+<b>You:</b>
+${question}
+
+</div>
+
+<div>
+
+<b>AI:</b>
+${data.reply}
+
+</div>
+
+<hr>
+
+`;
+
+}
 </script>
+   <div id="aiModal"
+class="modal">
+
+<div class="modal-content">
+
+<div class="modal-header">
+
+<strong>
+Vault AI
+</strong>
+
+<button
+onclick="closeAI()">
+
+Close
+
+</button>
+
+</div>
+
+<div id="aiMessages"
+style="
+flex:1;
+overflow:auto;
+padding:20px;
+background:#f8fafc;
+"></div>
+
+<div style="
+padding:20px;
+display:flex;
+gap:10px;
+">
+
+<input
+id="aiInput"
+placeholder="
+Ask about your documents..."
+>
+
+<button
+onclick="askAI()">
+
+Send
+
+</button>
+
+</div>
+
+</div>
+</div>
 </body>
 </html>
