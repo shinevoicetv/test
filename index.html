@@ -1695,6 +1695,20 @@ style="display:none;">
     </div>
 </div>
 
+   <input
+   type="text"
+   id="searchBox"
+   placeholder="Search documents..."
+>
+
+<button onclick="
+searchOCR(
+document.getElementById('searchBox').value
+)
+">
+Search
+</button>
+
 <!-- =========================
      SCRIPT
 ========================= -->   
@@ -3595,6 +3609,11 @@ async ()=>{
             {type:"application/pdf"}
         );
 
+       await processAndStoreOCR(
+   decryptedBlob,
+   fileName
+);
+
         const url =
         URL.createObjectURL(blob);
 
@@ -4500,6 +4519,214 @@ document.addEventListener(
     }
 
 });
+
+</script>
+
+   <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
+
+   <script>
+
+// =======================
+// INDEXED DB
+// =======================
+
+let db;
+
+const request = indexedDB.open("VaultDB", 1);
+
+request.onupgradeneeded = function(event) {
+
+    db = event.target.result;
+
+    db.createObjectStore("ocrStore", {
+        keyPath: "id"
+    });
+};
+
+request.onsuccess = function(event) {
+
+    db = event.target.result;
+
+    console.log("IndexedDB Ready");
+};
+
+
+// =======================
+// SAVE OCR
+// =======================
+
+function saveOCR(fileName, text) {
+
+    const transaction =
+        db.transaction(["ocrStore"], "readwrite");
+
+    const store =
+        transaction.objectStore("ocrStore");
+
+    store.put({
+        id: fileName,
+        text: text,
+        date: Date.now()
+    });
+
+    console.log("OCR Saved");
+}
+
+
+// =======================
+// CHECK EXISTING OCR
+// =======================
+
+function getOCR(fileName) {
+
+    return new Promise((resolve) => {
+
+        const transaction =
+            db.transaction(
+                ["ocrStore"],
+                "readonly"
+            );
+
+        const store =
+            transaction.objectStore("ocrStore");
+
+        const request =
+            store.get(fileName);
+
+        request.onsuccess = function() {
+
+            resolve(request.result);
+        };
+
+        request.onerror = function() {
+
+            resolve(null);
+        };
+    });
+}
+
+
+// =======================
+// OCR PDF
+// =======================
+
+async function processAndStoreOCR(blob, fileName) {
+
+    const existing = await getOCR(fileName);
+
+    if (existing) {
+
+        console.log("OCR already exists");
+
+        return;
+    }
+
+    console.log("Running OCR...");
+
+    const worker =
+        await Tesseract.createWorker(
+            'eng+deu+mar+hin'
+        );
+
+    const pdfData =
+        await blob.arrayBuffer();
+
+    const pdf =
+        await pdfjsLib.getDocument({
+            data: pdfData
+        }).promise;
+
+    let fullText = "";
+
+    for (
+        let pageNum = 1;
+        pageNum <= pdf.numPages;
+        pageNum++
+    ) {
+
+        const page =
+            await pdf.getPage(pageNum);
+
+        const viewport =
+            page.getViewport({
+                scale: 2
+            });
+
+        const canvas =
+            document.createElement("canvas");
+
+        const context =
+            canvas.getContext("2d");
+
+        canvas.width = viewport.width;
+
+        canvas.height = viewport.height;
+
+        await page.render({
+            canvasContext: context,
+            viewport
+        }).promise;
+
+        const result =
+            await worker.recognize(canvas);
+
+        fullText +=
+            result.data.text + "\n";
+    }
+
+    await worker.terminate();
+
+    saveOCR(fileName, fullText);
+
+    console.log("OCR Finished");
+}
+
+
+// =======================
+// SEARCH OCR
+// =======================
+
+function searchOCR(searchTerm) {
+
+    const transaction =
+        db.transaction(
+            ["ocrStore"],
+            "readonly"
+        );
+
+    const store =
+        transaction.objectStore("ocrStore");
+
+    const request =
+        store.getAll();
+
+    request.onsuccess = function() {
+
+        const files =
+            request.result;
+
+        console.clear();
+
+        files.forEach(file => {
+
+            if (
+                file.text
+                .toLowerCase()
+                .includes(
+                    searchTerm.toLowerCase()
+                )
+            ) {
+
+                console.log(
+                    "Found in:",
+                    file.id
+                );
+            }
+        });
+    };
+}
 
 </script>
 </body>
