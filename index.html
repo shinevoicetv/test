@@ -3811,15 +3811,43 @@ async function openLogs(){
 
     try{
 
-        const snapshot =
-        await getDocs(
+const {
+    collection,
+    getDocs,
+    query,
+    where
+} = window.firestoreFunctions;
 
-            collection(
-                window.db,
-                "visitorLogs"
-            )
+const currentBrowser =
+navigator.userAgent;
 
-        );
+const currentPlatform =
+navigator.platform;
+
+const q =
+query(
+
+    collection(
+        window.db,
+        "visitorLogs"
+    ),
+
+    where(
+        "browser",
+        "==",
+        currentBrowser
+    ),
+
+    where(
+        "platform",
+        "==",
+        currentPlatform
+    )
+
+);
+
+const snapshot =
+await getDocs(q);
 
         snapshot.forEach(doc=>{
 
@@ -4176,7 +4204,9 @@ import {
     doc,
     onSnapshot,
     updateDoc,
-    setDoc
+    setDoc,
+    query,
+    where
 }
    
 from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
@@ -4214,7 +4244,9 @@ window.firestoreFunctions = {
     doc,
     onSnapshot,
     updateDoc,
-    setDoc
+    setDoc,
+    query,
+    where
 };
 
 window.sha256 = async function(text){
