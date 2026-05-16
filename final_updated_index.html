@@ -1404,17 +1404,16 @@ button{
     align-items:center;
 
 }
-</style>
+   /* Default Mode */
+#vaultReadyText{
+  color:black;
+}
 
-
-<style>
-.dark-mode .vault-ready,
-.dark-mode #vaultReadyText,
-.dark-mode .ready-text{
-color:white !important;
+/* Dark Mode */
+.dark-mode #vaultReadyText{
+  color:white !important;
 }
 </style>
-
 </head>
 
 <body>
@@ -1694,7 +1693,7 @@ onclick="openAI()">
                 <div id="session-timer">60:00</div>
             </div>
 
-            <h2 id="cat-title">Vault Ready To Use</h2>
+<span id="vaultReadyText">THE VAULT IS READY TO USE</span>
             <br>
 <input
 type="text"
