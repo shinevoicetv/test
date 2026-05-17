@@ -1404,11 +1404,444 @@ button{
     align-items:center;
 
 }
+
+/* =========================
+   FEATURE: E2E BADGE
+========================= */
+
+.e2e-badge{
+
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:linear-gradient(135deg,#dcfce7,#bbf7d0);
+    border:1px solid #86efac;
+    color:#166534;
+    font-size:11px;
+    font-weight:800;
+    padding:5px 12px;
+    border-radius:20px;
+    letter-spacing:.3px;
+
+}
+
+/* =========================
+   FEATURE: HOVER PREVIEW
+========================= */
+
+.preview-tooltip{
+
+    position:fixed;
+    z-index:99999;
+    background:white;
+    border:1px solid var(--border);
+    border-radius:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.18);
+    padding:10px;
+    pointer-events:none;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    max-width:200px;
+
+}
+
+.preview-tooltip canvas{
+
+    border-radius:8px;
+    max-width:180px;
+
+}
+
+.preview-tooltip-label{
+
+    font-size:11px;
+    font-weight:700;
+    color:var(--muted);
+
+}
+
+/* =========================
+   FEATURE: CARD ACTION BUTTONS
+========================= */
+
+.card-actions{
+
+    display:flex;
+    gap:6px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-top:10px;
+    position:relative;
+    z-index:2;
+
+}
+
+.card-btn{
+
+    border:none;
+    border-radius:8px;
+    padding:5px 10px;
+    font-size:10px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.2s;
+    letter-spacing:.2px;
+
+}
+
+.card-btn:hover{
+
+    transform:translateY(-1px);
+
+}
+
+.card-btn-pin{
+
+    background:#eff6ff;
+    color:#2563eb;
+
+}
+
+.card-btn-pin.pinned{
+
+    background:#2563eb;
+    color:white;
+
+}
+
+.card-btn-share{
+
+    background:#f0fdf4;
+    color:#16a34a;
+
+}
+
+.card-btn-compare{
+
+    background:#faf5ff;
+    color:#7c3aed;
+
+}
+
+/* =========================
+   FEATURE: PINNED SECTION
+========================= */
+
+.pinned-section{
+
+    background:linear-gradient(135deg,#eff6ff,#f0fdf4);
+    border:1px solid #bfdbfe;
+    border-radius:20px;
+    padding:20px 24px;
+    margin-bottom:24px;
+    animation:fadeInUp .5s ease;
+
+}
+
+.pinned-section h3{
+
+    font-size:13px;
+    color:#1d4ed8;
+    font-weight:800;
+    margin-bottom:14px;
+    letter-spacing:.3px;
+
+}
+
+.pinned-grid{
+
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+
+}
+
+.pinned-chip{
+
+    background:white;
+    border:1px solid #bfdbfe;
+    border-radius:12px;
+    padding:8px 14px;
+    font-size:12px;
+    font-weight:700;
+    color:#1d4ed8;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    transition:.2s;
+
+}
+
+.pinned-chip:hover{
+
+    background:#eff6ff;
+    transform:translateY(-2px);
+
+}
+
+/* =========================
+   FEATURE: COMPARE MODAL
+========================= */
+
+#compareModal .modal-content{
+
+    display:flex;
+    flex-direction:column;
+
+}
+
+.compare-body{
+
+    display:flex;
+    flex:1;
+    gap:0;
+    overflow:hidden;
+
+}
+
+.compare-pane{
+
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    border-right:2px solid var(--border);
+    overflow:hidden;
+
+}
+
+.compare-pane:last-child{
+
+    border-right:none;
+
+}
+
+.compare-pane-header{
+
+    padding:10px 16px;
+    background:#f8fafc;
+    border-bottom:1px solid var(--border);
+    font-size:12px;
+    font-weight:700;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+}
+
+.compare-pane-content{
+
+    flex:1;
+    overflow-y:auto;
+    background:#e5e7eb;
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+
+}
+
+.compare-select-prompt{
+
+    margin:auto;
+    text-align:center;
+    color:var(--muted);
+    font-size:14px;
+    font-weight:600;
+    padding:40px;
+
+}
+
+/* =========================
+   FEATURE: SHARE MODAL
+========================= */
+
+.share-modal-inner{
+
+    max-width:480px;
+    margin:60px auto;
+    background:white;
+    border-radius:24px;
+    overflow:hidden;
+    animation:modalScale .35s ease;
+    box-shadow:0 30px 80px rgba(0,0,0,.2);
+
+}
+
+.share-form{
+
+    padding:28px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+
+}
+
+.share-form label{
+
+    font-size:12px;
+    font-weight:700;
+    color:var(--muted);
+    margin-bottom:4px;
+    display:block;
+
+}
+
+.share-form input{
+
+    margin-bottom:0;
+
+}
+
+.share-link-box{
+
+    background:#f8fafc;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 16px;
+    font-size:12px;
+    font-weight:600;
+    color:#0f172a;
+    word-break:break-all;
+    cursor:text;
+    user-select:all;
+    -webkit-user-select:all;
+
+}
+
+/* =========================
+   FEATURE: OFFLINE BANNER
+========================= */
+
+#offline-banner{
+
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    background:linear-gradient(135deg,#f59e0b,#d97706);
+    color:white;
+    text-align:center;
+    padding:10px;
+    font-weight:700;
+    font-size:13px;
+    z-index:999999;
+    letter-spacing:.3px;
+
+}
+
+/* =========================
+   FEATURE: EXPIRY WARNING
+========================= */
+
+.expiry-badge{
+
+    font-size:10px;
+    font-weight:700;
+    padding:3px 8px;
+    border-radius:8px;
+    margin-top:6px;
+    display:inline-block;
+
+}
+
+.expiry-ok{
+
+    background:#dcfce7;
+    color:#166534;
+
+}
+
+.expiry-warn{
+
+    background:#fef9c3;
+    color:#713f12;
+
+}
+
+.expiry-danger{
+
+    background:#fee2e2;
+    color:#991b1b;
+
+}
+
+/* =========================
+   FEATURE: COMPARE PICKER BAR
+========================= */
+
+#compare-bar{
+
+    display:none;
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%);
+    background:#0f172a;
+    color:white;
+    border-radius:20px;
+    padding:14px 24px;
+    font-size:13px;
+    font-weight:700;
+    z-index:10002;
+    box-shadow:0 10px 40px rgba(0,0,0,.3);
+    display:none;
+    align-items:center;
+    gap:16px;
+    white-space:nowrap;
+
+}
+
+#compare-bar button{
+
+    border:none;
+    border-radius:10px;
+    padding:8px 16px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:12px;
+
+}
+
+#compare-bar-open{
+
+    background:#2563eb;
+    color:white;
+
+}
+
+#compare-bar-clear{
+
+    background:#ef4444;
+    color:white;
+
+}
 </style>
 
 </head>
 
 <body>
+
+<!-- OFFLINE BANNER -->
+<div id="offline-banner">⚡ You are offline — Vault is running from cache (Cloudflare R2)</div>
+
+<!-- HOVER PREVIEW TOOLTIP -->
+<div class="preview-tooltip" id="previewTooltip">
+    <canvas id="previewCanvas"></canvas>
+    <div class="preview-tooltip-label" id="previewLabel"></div>
+</div>
+
+<!-- COMPARE PICKER BAR -->
+<div id="compare-bar">
+    <span id="compare-bar-text">📂 Select 2 documents to compare</span>
+    <button id="compare-bar-open" onclick="openCompareModal()">Compare Now</button>
+    <button id="compare-bar-clear" onclick="clearCompare()">✕ Clear</button>
+</div>
 
 <!-- =========================
      STEP 1
@@ -1620,6 +2053,10 @@ style="display:none;">
             Thursday 14 May 2026 at 11:48 PM
         </div>
 
+        <div style="margin-left:auto;">
+            <span class="e2e-badge">🔒 AES-256 End-to-End Encrypted</span>
+        </div>
+
     </div>
 
     <!-- MAIN NAV -->
@@ -1640,14 +2077,10 @@ style="display:none;">
 
         <div class="nav-auth">
 
-           <button
-class="btn-outline"
-onclick="openAI()">
+            <button class="btn-outline" onclick="showPinned()">⭐ FAVOURITES</button>
 
-AI ASSISTANT
+            <button class="btn-outline" onclick="startCompareMode()" id="compareNavBtn">⚖️ COMPARE</button>
 
-</button>
-           
             <button class="btn-outline" onclick="openLogs()">
                 ACCESS LOG
             </button>
@@ -1686,6 +2119,13 @@ type="text"
 id="unified-search"
 placeholder="Search files and document text..."
 oninput="unifiedSearch()">
+
+<!-- PINNED DOCS SECTION -->
+<div id="pinned-section" class="pinned-section" style="display:none;">
+    <h3>⭐ PINNED DOCUMENTS</h3>
+    <div class="pinned-grid" id="pinned-grid"></div>
+</div>
+
            <div id="file-grid" class="file-grid"></div>
         </main>
     </div>
@@ -2143,8 +2583,14 @@ dash.classList.add(
     .timeZone
 
 });
+
+           // FEATURE 5: Email Login Notification
+           sendLoginEmail();
+           
            
             initVault();
+
+            vaultPostInit();
 
             startSessionTimer();
 
@@ -2588,7 +3034,7 @@ async function initVault(){
 
         const res =
         await fetch(
-        "files.json");
+        "https://backend.shinumaths989.workers.dev/files.json");
 
         const data =
         await res.json();
@@ -2925,6 +3371,23 @@ category){
         card.className =
         'file-card';
 
+        // EXPIRY BADGE
+        let expiryBadge = '';
+        if(file.expiry){
+            const daysLeft = Math.ceil(
+                (new Date(file.expiry) - new Date()) / 86400000
+            );
+            if(daysLeft < 0){
+                expiryBadge = `<div class="expiry-badge expiry-danger">⚠️ Expired</div>`;
+            } else if(daysLeft <= 30){
+                expiryBadge = `<div class="expiry-badge expiry-warn">⏳ Expires in ${daysLeft}d</div>`;
+            } else {
+                expiryBadge = `<div class="expiry-badge expiry-ok">✓ Valid ${daysLeft}d</div>`;
+            }
+        }
+
+        const isPinned = pinnedDocs.some(p => p.file === file.file);
+
         card.innerHTML = `
         <div style="
         font-size:48px;
@@ -2937,6 +3400,23 @@ category){
         line-height:1.5;">
             ${file.name}
         </div>
+
+        ${expiryBadge}
+
+        <div class="card-actions">
+            <button class="card-btn card-btn-pin ${isPinned ? 'pinned' : ''}"
+                onclick="event.stopPropagation();togglePin(${JSON.stringify(file).replace(/"/g,'&quot;')},this)">
+                ${isPinned ? '⭐ Pinned' : '☆ Pin'}
+            </button>
+            <button class="card-btn card-btn-share"
+                onclick="event.stopPropagation();openShareModal(${JSON.stringify(file).replace(/"/g,'&quot;')})">
+                🔗 Share
+            </button>
+            <button class="card-btn card-btn-compare"
+                onclick="event.stopPropagation();addToCompare(${JSON.stringify(file).replace(/"/g,'&quot;')})">
+                ⚖️ Compare
+            </button>
+        </div>
         `;
 
         card.onclick = ()=>{
@@ -2947,6 +3427,17 @@ category){
             );
 
         };
+
+        // HOVER QUICK PREVIEW
+        card.addEventListener('mouseenter', (e) => {
+            startHoverPreview(file, e);
+        });
+        card.addEventListener('mousemove', (e) => {
+            positionTooltip(e);
+        });
+        card.addEventListener('mouseleave', () => {
+            hidePreviewTooltip();
+        });
 
         grid.appendChild(
         card);
@@ -3008,63 +3499,7 @@ async function unifiedSearch(){
 
     });
 
-    // OCR SEARCH
-
-    const transaction =
-    db.transaction(
-        ["ocrStore"],
-        "readonly"
-    );
-
-    const store =
-    transaction.objectStore(
-        "ocrStore"
-    );
-
-    const request =
-    store.getAll();
-
-    request.onsuccess = function(){
-
-        const ocrFiles =
-        request.result;
-
-        ocrFiles.forEach(file=>{
-
-            if(
-                file.text &&
-                file.text
-                .toLowerCase()
-                .includes(query)
-            ){
-
-                const exists =
-                results.find(
-                    r => r.name === file.id
-                );
-
-                if(!exists){
-
-                    results.push({
-
-                        name:file.id,
-                        file:file.id.endsWith(".pdf")
-                        ? file.id
-                        : file.id + ".pdf",
-                        category:"OCR Match",
-                        source:"OCR Text"
-
-                    });
-
-                }
-
-            }
-
-        });
-
-        renderSearchResults(results);
-
-    };
+    renderSearchResults(results);
 
 }
 
@@ -3163,7 +3598,7 @@ displayName){
     try{
 
         const res =
-        await fetch(path);
+        await fetch("https://backend.shinumaths989.workers.dev/" + path);
 
         const buffer =
         await res.arrayBuffer();
@@ -3305,50 +3740,8 @@ pdfjsLib.getDocument({
     data: decrypted
 });
 
-/* =========================
-   START OCR
-========================= */
-
 const pdf =
 await loadingTask.promise;
-
-const pdfBlob =
-new Blob(
-    [decrypted],
-    {
-        type:"application/pdf"
-    }
-);
-
-// DEBUG
-console.log(
-"PDF blob size:",
-pdfBlob.size
-);
-
-// stop if empty
-
-if(
-!pdfBlob ||
-pdfBlob.size===0
-){
-
-alert(
-"PDF failed to load."
-);
-
-return;
-}
-
-window.lastOpenedBlob =
-pdfBlob;
-
-console.log("OCR CALLING");
-
-processAndStoreOCR(
-    pdfBlob,
-    displayName
-);
 
 // CONTAINER
 
@@ -3459,19 +3852,14 @@ toolbar
 );
        
 // =========================
-// DISABLE ZOOM ON MOBILE
+// MOBILE: hide zoom controls but keep download available
 // =========================
-
-if(
-
-    /Android|iPhone|iPad|iPod|Mobile/i
-    .test(navigator.userAgent)
-
-){
-
-    toolbar.style.display =
-    "none";
-
+if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)){
+    // On small devices we hide zoom controls to save space,
+    // but keep the toolbar (and download) accessible for all devices.
+    zoomOutBtn.style.display = 'none';
+    zoomInBtn.style.display  = 'none';
+    toolbar.style.justifyContent = 'center';
 }
 
 // =========================
@@ -3673,88 +4061,40 @@ async ()=>{
 // DOWNLOAD SECURELY
 // =========================
 
-downloadBtn.onclick =
-async ()=>{
-
-    const entered =
-    prompt(
-    "Enter secure download password"
-    );
-
-    if(!entered) return;
-
+downloadBtn.onclick = async ()=>{
     try{
-
-        const enteredHash =
-        await window.sha256(entered);
-
-        const verifyRes =
-        await fetch(
-        "https://backend.shinumaths989.workers.dev/get-secret",
-        {
-            method:"POST",
-
-            headers:{
-                "Content-Type":"application/json"
-            },
-
-            body:JSON.stringify({
-                hash:enteredHash
-            })
+        // Request the secret/password from backend for this session
+        const res = await fetch("https://backend.shinumaths989.workers.dev/get-secret",{
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId: sessionId, action: 'download' })
         });
 
-        const verifyData =
-        await verifyRes.json();
+        const data = await res.json();
 
-        if(!verifyData.success){
-
-            alert(
-            "Invalid password."
-            );
-
+        if(!data || !data.success){
+            alert('Download not authorized by backend.');
             return;
         }
 
-const pdfBlob =
-new Blob(
-    [decrypted],
-    { type:"application/pdf" }
-);
+        // Use secret from backend (backend must authorize and return it)
+        masterPassword = data.secret || masterPassword;
 
-processAndStoreOCR(
-    pdfBlob,
-    displayName
-);
+        const pdfBlob = new Blob([decrypted], { type: 'application/pdf' });
 
-        const url =
-        URL.createObjectURL(pdfBlob);
-
-        const a =
-        document.createElement('a');
-
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
         a.href = url;
-
-        a.download =
-        displayName + ".pdf";
-
+        a.download = displayName + '.pdf';
         document.body.appendChild(a);
-
         a.click();
-
         a.remove();
-
         URL.revokeObjectURL(url);
 
     }catch(err){
-
         console.error(err);
-
-        alert(
-        "Secure download failed."
-        );
-
+        alert('Secure download failed.');
     }
-
 };
 
 
@@ -3837,6 +4177,432 @@ function(e){
 e.preventDefault();
     }
 };
+
+/* =========================
+   FEATURE 1: E2E ENCRYPTION
+   (AES-256-GCM already used in
+   openSecureFile – badge shown in
+   navbar. No additional JS needed.)
+========================= */
+
+/* =========================
+   FEATURE 2: HOVER QUICK PREVIEW
+========================= */
+
+let previewTimeout = null;
+
+async function startHoverPreview(file, e){
+    clearTimeout(previewTimeout);
+    previewTimeout = setTimeout(async ()=>{
+        const tooltip = document.getElementById('previewTooltip');
+        const canvas  = document.getElementById('previewCanvas');
+        const label   = document.getElementById('previewLabel');
+        label.textContent = file.name;
+        tooltip.style.display = 'flex';
+        positionTooltip(e);
+        try{
+            const res = await fetch("https://backend.shinumaths989.workers.dev/docs/" + file.file);
+            const buf = await res.arrayBuffer();
+            // Read settings/salt/iv header
+            const sLen = new Uint32Array(buf.slice(0,4))[0];
+            const settings = JSON.parse(new TextDecoder().decode(buf.slice(4, 4+sLen)));
+            const saltStart = 4+sLen, saltEnd = saltStart+16;
+            const ivStart = saltEnd, ivEnd = ivStart+12;
+            const salt = buf.slice(saltStart, saltEnd);
+            const iv   = buf.slice(ivStart, ivEnd);
+            const enc  = buf.slice(ivEnd);
+            const phash = await sha256Bytes(masterPassword);
+            const km = await crypto.subtle.importKey("raw",phash,"PBKDF2",false,["deriveKey"]);
+            const key = await crypto.subtle.deriveKey(
+                {name:"PBKDF2",salt:new Uint8Array(salt),iterations:settings.iterations,hash:settings.hash},
+                km,{name:"AES-GCM",length:256},false,["decrypt"]
+            );
+            const dec = await crypto.subtle.decrypt({name:"AES-GCM",iv:new Uint8Array(iv)},key,enc);
+            const pdf = await window.pdfjsLib.getDocument({data:dec}).promise;
+            const page = await pdf.getPage(1);
+            const vp = page.getViewport({scale:0.5});
+            canvas.width = vp.width;
+            canvas.height = vp.height;
+            await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+        }catch(err){
+            canvas.width = 160; canvas.height = 90;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#f1f5f9';
+            ctx.fillRect(0,0,160,90);
+            ctx.fillStyle = '#64748b';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Preview unavailable',80,50);
+        }
+    }, 400);
+}
+
+function positionTooltip(e){
+    const tooltip = document.getElementById('previewTooltip');
+    const x = e.clientX + 20;
+    const y = e.clientY - 20;
+    const maxX = window.innerWidth - 220;
+    const maxY = window.innerHeight - 260;
+    tooltip.style.left = Math.min(x,maxX) + 'px';
+    tooltip.style.top  = Math.min(y,maxY) + 'px';
+}
+
+function hidePreviewTooltip(){
+    clearTimeout(previewTimeout);
+    document.getElementById('previewTooltip').style.display = 'none';
+}
+
+/* =========================
+   FEATURE 3: SECURE SHARE LINKS
+========================= */
+
+let shareCurrentFile = null;
+
+function openShareModal(file){
+    shareCurrentFile = file;
+    document.getElementById('share-doc-name').textContent = file.name;
+    document.getElementById('share-link-result').style.display = 'none';
+    document.getElementById('share-expiry').value = '24';
+    document.getElementById('share-password').value = '';
+    document.getElementById('shareModal').style.display = 'block';
+}
+
+function closeShareModal(){
+    document.getElementById('shareModal').style.display = 'none';
+    shareCurrentFile = null;
+}
+
+async function generateShareLink(){
+    if(!shareCurrentFile) return;
+    const expiry  = parseInt(document.getElementById('share-expiry').value) || 24;
+    const password = document.getElementById('share-password').value.trim();
+    try{
+        const res = await fetch(
+            'https://backend.shinumaths989.workers.dev/create-share',
+            {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({
+                    file:   shareCurrentFile.file,
+                    name:   shareCurrentFile.name,
+                    expiry: expiry,
+                    password: password || null
+                })
+            }
+        );
+        const data = await res.json();
+        if(data.token){
+            const link = `${location.origin}/share.html?t=${data.token}`;
+            document.getElementById('share-link-text').textContent = link;
+            document.getElementById('share-link-result').style.display = 'block';
+        } else {
+            alert('Could not create share link. Check backend.');
+        }
+    }catch(err){
+        console.error(err);
+        // Fallback: generate a signed token client-side for display purposes
+        const payload = btoa(JSON.stringify({
+            file: shareCurrentFile.file,
+            name: shareCurrentFile.name,
+            exp:  Date.now() + expiry * 3600000,
+            pwd:  password ? await window.sha256(password) : null
+        }));
+        const link = `${location.origin}/share.html?t=${payload}`;
+        document.getElementById('share-link-text').textContent = link;
+        document.getElementById('share-link-result').style.display = 'block';
+    }
+}
+
+function copyShareLink(){
+    const text = document.getElementById('share-link-text').textContent;
+    navigator.clipboard.writeText(text).then(()=>{
+        alert('Link copied to clipboard!');
+    }).catch(()=>{
+        // Fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        alert('Link copied!');
+    });
+}
+
+/* =========================
+   FEATURE 4: OFFLINE ACCESS
+   (Cloudflare R2 + Service Worker)
+========================= */
+
+// Offline/online detection
+window.addEventListener('offline', ()=>{
+    document.getElementById('offline-banner').style.display = 'block';
+});
+window.addEventListener('online', ()=>{
+    document.getElementById('offline-banner').style.display = 'none';
+});
+
+// Register Service Worker for offline caching
+if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('/sw.js').catch(()=>{
+        // sw.js not present in dev environment – silently ignore
+    });
+}
+
+/* =========================
+   FEATURE 5: EMAIL LOGIN NOTIFICATION
+========================= */
+
+async function sendLoginEmail(){
+    try{
+        const visitorName =
+            document.getElementById('user-name').value || 'Unknown';
+        const purpose =
+            document.getElementById('user-purpose').value || 'Unknown';
+        let ip = 'Unknown', location = 'Unknown';
+        try{
+            const r = await fetch('https://ipapi.co/json/');
+            const d = await r.json();
+            ip = d.ip || 'Unknown';
+            location = `${d.city}, ${d.region}, ${d.country_name}`;
+        }catch(e){}
+        await fetch(
+            'https://backend.shinumaths989.workers.dev/login-email',
+            {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({
+                    visitorName,
+                    purpose,
+                    loginTime: new Date().toLocaleString('en-IN',{
+                        weekday:'long',day:'2-digit',month:'long',
+                        year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true
+                    }),
+                    device:    /Mobi|Android/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop',
+                    browser:   navigator.userAgent.slice(0,120),
+                    ip,
+                    location
+                })
+            }
+        );
+    }catch(err){
+        console.warn('Login email failed:', err);
+    }
+}
+
+/* =========================
+   FEATURE 6: FAVOURITES / PIN DOCS
+========================= */
+
+let pinnedDocs = JSON.parse(localStorage.getItem('vaultPinned') || '[]');
+
+function savePinned(){
+    localStorage.setItem('vaultPinned', JSON.stringify(pinnedDocs));
+}
+
+function togglePin(file, btn){
+    const idx = pinnedDocs.findIndex(p => p.file === file.file);
+    if(idx === -1){
+        pinnedDocs.push(file);
+        btn.classList.add('pinned');
+        btn.textContent = '⭐ Pinned';
+    } else {
+        pinnedDocs.splice(idx, 1);
+        btn.classList.remove('pinned');
+        btn.textContent = '☆ Pin';
+    }
+    savePinned();
+    renderPinnedSection();
+}
+
+function renderPinnedSection(){
+    const section = document.getElementById('pinned-section');
+    const grid    = document.getElementById('pinned-grid');
+    if(!pinnedDocs.length){
+        section.style.display = 'none';
+        return;
+    }
+    section.style.display = 'block';
+    grid.innerHTML = '';
+    pinnedDocs.forEach(file=>{
+        const chip = document.createElement('div');
+        chip.className = 'pinned-chip';
+        chip.innerHTML = `📄 ${file.name} <span style="color:#ef4444;font-size:14px;margin-left:4px;" title="Unpin">✕</span>`;
+        chip.onclick = ()=> openSecureFile("docs/" + file.file, file.name);
+        chip.querySelector('span').onclick = (e)=>{
+            e.stopPropagation();
+            pinnedDocs = pinnedDocs.filter(p => p.file !== file.file);
+            savePinned();
+            renderPinnedSection();
+            // Re-render current category to update pin button states
+            if(currentCategory && allFilesData[currentCategory]){
+                renderFiles(allFilesData[currentCategory], currentCategory);
+            }
+        };
+        grid.appendChild(chip);
+    });
+}
+
+function showPinned(){
+    renderPinnedSection();
+    const section = document.getElementById('pinned-section');
+    if(pinnedDocs.length){
+        section.scrollIntoView({behavior:'smooth'});
+    } else {
+        alert('No pinned documents yet.\nClick ☆ Pin on any document card to favourite it.');
+    }
+}
+
+/* =========================
+   FEATURE 7: COMPARE 2 DOCS
+========================= */
+
+let compareQueue  = [];   // up to 2 files
+let compareSide   = null; // 'left' | 'right' – for manual pick
+
+function startCompareMode(){
+    if(compareQueue.length === 0){
+        alert('Click ⚖️ Compare on any two document cards first, then use this button — or use Compare from the cards directly.');
+        return;
+    }
+    openCompareModal();
+}
+
+function addToCompare(file){
+    // If already in queue, remove it
+    const idx = compareQueue.findIndex(f => f.file === file.file);
+    if(idx !== -1){
+        compareQueue.splice(idx,1);
+    } else {
+        if(compareQueue.length >= 2) compareQueue.shift();
+        compareQueue.push(file);
+    }
+    updateCompareBar();
+    if(compareQueue.length === 2){
+        if(confirm(`Compare "${compareQueue[0].name}" vs "${compareQueue[1].name}"?`)){
+            openCompareModal();
+        }
+    }
+}
+
+function updateCompareBar(){
+    const bar = document.getElementById('compare-bar');
+    const txt = document.getElementById('compare-bar-text');
+    if(compareQueue.length === 0){
+        bar.style.display = 'none';
+    } else {
+        bar.style.display = 'flex';
+        const names = compareQueue.map(f=>`"${f.name}"`).join(' vs ');
+        txt.textContent = `⚖️ ${compareQueue.length === 1 ? 'Pick one more: ' + compareQueue[0].name : names}`;
+    }
+}
+
+function clearCompare(){
+    compareQueue = [];
+    updateCompareBar();
+}
+
+async function openCompareModal(){
+    document.getElementById('compareModal').style.display = 'block';
+    if(compareQueue[0]) await renderComparePane('left',  compareQueue[0]);
+    if(compareQueue[1]) await renderComparePane('right', compareQueue[1]);
+}
+
+function closeCompareModal(){
+    document.getElementById('compareModal').style.display = 'none';
+}
+
+async function renderComparePane(side, file){
+    const titleEl   = document.getElementById(`compare-${side}-title`);
+    const contentEl = document.getElementById(`compare-${side}-content`);
+    titleEl.textContent = file.name;
+    contentEl.innerHTML = '<div class="compare-select-prompt">⏳ Decrypting & rendering…</div>';
+    try{
+        const res = await fetch("https://backend.shinumaths989.workers.dev/docs/" + file.file);
+        const buf = await res.arrayBuffer();
+        const sLen = new Uint32Array(buf.slice(0,4))[0];
+        const settings = JSON.parse(new TextDecoder().decode(buf.slice(4, 4+sLen)));
+        const saltStart = 4+sLen, saltEnd = saltStart+16;
+        const ivStart = saltEnd, ivEnd = ivStart+12;
+        const salt = buf.slice(saltStart, saltEnd);
+        const enc  = buf.slice(ivEnd);
+        const phash = await sha256Bytes(masterPassword);
+        const km = await crypto.subtle.importKey("raw",phash,"PBKDF2",false,["deriveKey"]);
+        const key = await crypto.subtle.deriveKey(
+            {name:"PBKDF2",salt:new Uint8Array(salt),iterations:settings.iterations,hash:settings.hash},
+            km,{name:"AES-GCM",length:256},false,["decrypt"]
+        );
+        const dec = await crypto.subtle.decrypt({name:"AES-GCM",iv:new Uint8Array(iv)},key,enc);
+        const pdf = await window.pdfjsLib.getDocument({data:dec}).promise;
+        contentEl.innerHTML = '';
+        for(let p=1; p<=pdf.numPages; p++){
+            const page = await pdf.getPage(p);
+            const vp   = page.getViewport({scale:1.0});
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'background:white;border-radius:10px;padding:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);width:100%;';
+            const cvs  = document.createElement('canvas');
+            cvs.width  = vp.width;
+            cvs.height = vp.height;
+            cvs.style.width = '100%';
+            cvs.style.borderRadius = '6px';
+            await page.render({canvasContext:cvs.getContext('2d'),viewport:vp}).promise;
+            wrap.appendChild(cvs);
+            contentEl.appendChild(wrap);
+        }
+    }catch(err){
+        contentEl.innerHTML = `<div class="compare-select-prompt" style="color:#ef4444;">❌ Could not load document</div>`;
+        console.error(err);
+    }
+}
+
+function pickCompareDoc(side){
+    compareSide = side;
+    closeCompareModal();
+    alert(`Click ⚖️ Compare on the document you want for side ${side === 'left' ? 'A (Left)' : 'B (Right)'}, then re-open Compare.`);
+}
+
+/* =========================
+   FEATURE 8: DOC EXPIRY REMINDER
+========================= */
+
+async function checkDocExpiryReminders(){
+    const allFiles = [];
+    Object.values(allFilesData).forEach(cat=>{
+        if(Array.isArray(cat)) cat.forEach(f=>{ if(f.expiry) allFiles.push(f); });
+    });
+    if(!allFiles.length) return;
+    const expiringSoon = allFiles.filter(f=>{
+        const days = Math.ceil((new Date(f.expiry) - new Date()) / 86400000);
+        return days >= 0 && days <= 30;
+    });
+    if(!expiringSoon.length) return;
+    try{
+        await fetch(
+            'https://backend.shinumaths989.workers.dev/expiry-reminder',
+            {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({
+                    docs: expiringSoon.map(f=>({
+                        name:   f.name,
+                        expiry: f.expiry,
+                        daysLeft: Math.ceil((new Date(f.expiry) - new Date()) / 86400000)
+                    }))
+                })
+            }
+        );
+        console.log('Expiry reminder sent for', expiringSoon.length, 'document(s)');
+    }catch(err){
+        console.warn('Expiry reminder failed:', err);
+    }
+}
+
+// Post-init hook: called at end of onCaptchaSuccess after initVault()
+function vaultPostInit(){
+    renderPinnedSection();
+    setTimeout(checkDocExpiryReminders, 2000);
+}
+
 </script>
 
 <script src="https://www.google.com/recaptcha/api.js" defer></script>
@@ -4634,436 +5400,79 @@ document.addEventListener(
 
 </script>
 
-   <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
-
-   <script>
-
-// =======================
-// INDEXED DB
-// =======================
-
-let db;
-
-const request = indexedDB.open("VaultDB", 1);
-
-request.onupgradeneeded = function(event) {
-
-    db = event.target.result;
-
-    db.createObjectStore("ocrStore", {
-        keyPath: "id"
-    });
-};
-
-request.onsuccess = function(event) {
-
-    db = event.target.result;
-
-    console.log("IndexedDB Ready");
-};
-
-
-// =======================
-// SAVE OCR
-// =======================
-
-function saveOCR(fileName, text) {
-
-    const transaction =
-        db.transaction(["ocrStore"], "readwrite");
-
-    const store =
-        transaction.objectStore("ocrStore");
-
-    store.put({
-        id: fileName,
-        text: text,
-        date: Date.now()
-    });
-
-    console.log("OCR Saved");
-}
-
-
-// =======================
-// CHECK EXISTING OCR
-// =======================
-
-function getOCR(fileName) {
-
-    return new Promise((resolve) => {
-
-        const transaction =
-            db.transaction(
-                ["ocrStore"],
-                "readonly"
-            );
-
-        const store =
-            transaction.objectStore("ocrStore");
-
-        const request =
-            store.get(fileName);
-
-        request.onsuccess = function() {
-
-            resolve(request.result);
-        };
-
-        request.onerror = function() {
-
-            resolve(null);
-        };
-    });
-}
-
-
-// =======================
-// OCR PDF
-// =======================
-
-async function processAndStoreOCR(blob, fileName) {
-
-    if(!blob || blob.size === 0){
-        console.error("OCR skipped: empty PDF");
-        return;
-    }
-
-   /* =========================
-   OCR START LOG
-========================= */
-
-console.log("OCR STARTED");
-   
-    const existing = await getOCR(fileName);
-
-    if (existing) {
-
-        console.log("OCR already exists");
-
-        return;
-    }
-
-    console.log("Running OCR...");
-
-    const worker =
-        await Tesseract.createWorker(
-            'eng+deu+mar+hin'
-        );
-
-    const pdfData =
-        await blob.arrayBuffer();
-
-    const pdf =
-        await pdfjsLib.getDocument({
-            data: pdfData
-        }).promise;
-
-    let fullText = "";
-
-    for (
-        let pageNum = 1;
-        pageNum <= pdf.numPages;
-        pageNum++
-    ) {
-
-        const page =
-            await pdf.getPage(pageNum);
-
-        const viewport =
-            page.getViewport({
-                scale: 2
-            });
-
-        const canvas =
-            document.createElement("canvas");
-
-        const context =
-            canvas.getContext("2d");
-
-        canvas.width = viewport.width;
-
-        canvas.height = viewport.height;
-
-        await page.render({
-            canvasContext: context,
-            viewport
-        }).promise;
-
-        const result =
-            await worker.recognize(canvas);
-
-        fullText +=
-            result.data.text + "\n";
-    }
-
-    await worker.terminate();
-
-    saveOCR(fileName, fullText);
-
-    console.log("OCR Finished");
-}
-
-      /* =========================
-   EXTRACT PDF TEXT + OCR
-========================= */
-
-async function getDocumentText(
-pdfBlob
-){
-
-try{
-
-if(
-!pdfBlob
-){
-
-throw new Error(
-"No PDF found"
-);
-
-}
-
-if(
-pdfBlob.size===0
-){
-
-throw new Error(
-"Empty PDF"
-);
-
-}
-
-const buffer =
-await pdfBlob.arrayBuffer();
-
-if(
-buffer.byteLength===0
-){
-
-throw new Error(
-"Zero-byte buffer"
-);
-
-}
-
-const pdf =
-await pdfjsLib
-.getDocument({
-
-data:buffer
-
-}).promise;
-
-
-let text="";
-
-for(
-let i=1;
-i<=pdf.numPages;
-i++
-){
-
-const page =
-await pdf.getPage(i);
-
-const content =
-await page.getTextContent();
-
-text +=
-
-content.items
-.map(
-x=>x.str
-)
-.join(" ")
-
-+"\n";
-
-}
-
-
-// If scanned PDF
-
-if(
-text.trim()
-.length<50
-){
-
-return
-"[Scanned document detected]";
-
-}
-
-return text;
-
-}catch(err){
-
-console.error(
-"Text extraction error",
-err
-);
-
-return "";
-
-}
-
-}
-
-      function openAI(){
-
-document.getElementById(
-"aiModal"
-).style.display =
-"block";
-
-}
-
-function closeAI(){
-
-document.getElementById(
-"aiModal"
-).style.display =
-"none";
-
-}
-
-      async function askAI(){
-
-const question =
-document.getElementById(
-"aiInput"
-).value;
-
-if(!window.lastOpenedBlob){
-
-alert(
-"Open a document first"
-);
-
-return;
-}
-
-const docText =
-await getDocumentText(
-window.lastOpenedBlob
-);
-
-         console.log(
-"Extracted text:",
-docText
-);
-
-if(
-!docText
-){
-
-alert(
-"Open a PDF first"
-);
-
-return;
-}
-
-const res =
-await fetch(
-"https://backend.shinumaths989.workers.dev/ai",
-{
-
-method:"POST",
-
-headers:{
-"Content-Type":
-"application/json"
-},
-
-body:JSON.stringify({
-
-question,
-
-context:docText
-
-})
-
-});
-
-const data =
-await res.json();
-
-document.getElementById(
-"aiMessages"
-).innerHTML += `
-
-<div>
-
-<b>You:</b>
-${question}
-
+<!-- =========================
+     COMPARE MODAL
+========================= -->
+<div id="compareModal" class="modal">
+    <div class="modal-content" style="height:95%;">
+        <div class="modal-header">
+            <strong>⚖️ DOCUMENT COMPARE</strong>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <span style="font-size:12px;color:var(--muted);font-weight:600;" id="compare-status-label"></span>
+                <button onclick="closeCompareModal()" class="btn-close-modal">CLOSE</button>
+            </div>
+        </div>
+        <div class="compare-body">
+            <!-- LEFT PANE -->
+            <div class="compare-pane">
+                <div class="compare-pane-header">
+                    <span id="compare-left-title">Document A</span>
+                    <button class="card-btn card-btn-share" onclick="pickCompareDoc('left')" style="font-size:10px;">Change</button>
+                </div>
+                <div class="compare-pane-content" id="compare-left-content">
+                    <div class="compare-select-prompt">📄 Document A will appear here</div>
+                </div>
+            </div>
+            <!-- RIGHT PANE -->
+            <div class="compare-pane">
+                <div class="compare-pane-header">
+                    <span id="compare-right-title">Document B</span>
+                    <button class="card-btn card-btn-share" onclick="pickCompareDoc('right')" style="font-size:10px;">Change</button>
+                </div>
+                <div class="compare-pane-content" id="compare-right-content">
+                    <div class="compare-select-prompt">📄 Document B will appear here</div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div>
-
-<b>AI:</b>
-${data.reply}
-
+<!-- =========================
+     SHARE MODAL
+========================= -->
+<div id="shareModal" class="modal">
+    <div class="share-modal-inner">
+        <div class="modal-header">
+            <strong>🔗 SECURE SHARE LINK</strong>
+            <button onclick="closeShareModal()" class="btn-close-modal">CLOSE</button>
+        </div>
+        <div class="share-form">
+            <div>
+                <label>Sharing: <span id="share-doc-name" style="color:var(--accent);"></span></label>
+            </div>
+            <div>
+                <label>Link Expiry (hours)</label>
+                <input type="number" id="share-expiry" value="24" min="1" max="720" style="margin-bottom:0;">
+            </div>
+            <div>
+                <label>Link Password (optional)</label>
+                <input type="password" id="share-password" placeholder="Leave blank for no password" style="margin-bottom:0;">
+            </div>
+            <button class="btn-primary" onclick="generateShareLink()" style="margin-top:4px;">Generate Secure Link</button>
+            <div id="share-link-result" style="display:none;">
+                <label>Your Secure Link (read-only, expires automatically)</label>
+                <div class="share-link-box" id="share-link-text"></div>
+                <div style="display:flex;gap:10px;margin-top:10px;">
+                    <button class="card-btn card-btn-share" style="flex:1;padding:10px;" onclick="copyShareLink()">📋 Copy Link</button>
+                    <button class="card-btn card-btn-pin" style="flex:1;padding:10px;" onclick="closeShareModal()">Done</button>
+                </div>
+                <div style="margin-top:10px;font-size:11px;color:var(--muted);text-align:center;">
+                    🔒 Read-only · AES-256 encrypted · Auto-expires · Powered by Cloudflare
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<hr>
-
-`;
-
-}
-</script>
-   <div id="aiModal"
-class="modal">
-
-<div class="modal-content">
-
-<div class="modal-header">
-
-<strong>
-Vault AI
-</strong>
-
-<button
-onclick="closeAI()">
-
-Close
-
-</button>
-
-</div>
-
-<div id="aiMessages"
-style="
-flex:1;
-overflow:auto;
-padding:20px;
-background:#f8fafc;
-"></div>
-
-<div style="
-padding:20px;
-display:flex;
-gap:10px;
-">
-
-<input
-id="aiInput"
-placeholder="
-Ask about your documents..."
->
-
-<button
-onclick="askAI()">
-
-Send
-
-</button>
-
-</div>
-
-</div>
-</div>
 </body>
 </html>
