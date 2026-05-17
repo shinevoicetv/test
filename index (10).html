@@ -3731,7 +3731,7 @@ displayName){
         );
 
 // Save a copy before pdfjsLib detaches the ArrayBuffer
-currentDecryptedPdf = decrypted.slice(0);
+currentDecryptedPdf = new Uint8Array(decrypted).slice().buffer;
 
 // =========================
 // PDF.JS
@@ -4071,23 +4071,50 @@ async ()=>{
 // =========================
 
 downloadBtn.onclick = async ()=>{
-    try{
-        if(!currentDecryptedPdf){ alert('No file loaded.'); return; }
-        const pdfBlob = new Blob([new Uint8Array(currentDecryptedPdf)], { type: 'application/pdf' });
 
-        const url = URL.createObjectURL(pdfBlob);
-        const a = document.createElement('a');
+    try{
+
+        if(!currentDecryptedPdf){
+
+            alert('No file loaded.');
+            return;
+
+        }
+
+        const pdfBlob = new Blob(
+            [currentDecryptedPdf],
+            {
+                type:'application/pdf'
+            }
+        );
+
+        const url =
+        URL.createObjectURL(pdfBlob);
+
+        const a =
+        document.createElement('a');
+
         a.href = url;
-        a.download = displayName + '.pdf';
+
+        a.download =
+        displayName + '.pdf';
+
         document.body.appendChild(a);
+
         a.click();
+
         a.remove();
+
         URL.revokeObjectURL(url);
 
     }catch(err){
+
         console.error(err);
+
         alert('Download failed.');
+
     }
+
 };
 
 
