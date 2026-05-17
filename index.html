@@ -3594,6 +3594,12 @@ async function unifiedSearch(){
 async function openSecureFile(
 path,
 displayName){
+       if (!masterPassword) {
+        alert("Session not unlocked. Please log in again.");
+        return;
+    }
+
+   console.log("masterPassword length:", masterPassword ? masterPassword.length : "EMPTY");
 
     try{
 
@@ -5043,6 +5049,19 @@ if (data.status === "denied") {
     "Access request denied."
     );
 
+   // BEFORE (line 5042–5046):
+const result = await res.json();
+masterPassword = result.secret;
+
+// AFTER:
+const result = await res.json();
+if (!result || !result.secret) {
+    alert("Passkey approved but backend did not return the secret. Cannot unlock.");
+    location.reload();
+    return;
+}
+masterPassword = result.secret;
+   
     location.reload();
                }
                
