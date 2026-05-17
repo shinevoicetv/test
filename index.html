@@ -4061,27 +4061,9 @@ async ()=>{
 // DOWNLOAD SECURELY
 // =========================
 
-downloadBtn.onclick = async ()=>{
-    try{
-        // Request the secret/password from backend for this session
-        const res = await fetch("https://backend.shinumaths989.workers.dev/get-secret",{
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sessionId: sessionId, action: 'download' })
-        });
-
-        const data = await res.json();
-
-        if(!data || !data.success){
-            alert('Download not authorized by backend.');
-            return;
-        }
-
-        // Use secret from backend (backend must authorize and return it)
-        masterPassword = data.secret || masterPassword;
-
-        const pdfBlob = new Blob([decrypted], { type: 'application/pdf' });
-
+downloadBtn.onclick = async () => {
+    try {
+        const pdfBlob = new Blob([new Uint8Array(decrypted)], { type: 'application/pdf' });
         const url = URL.createObjectURL(pdfBlob);
         const a = document.createElement('a');
         a.href = url;
@@ -4090,10 +4072,9 @@ downloadBtn.onclick = async ()=>{
         a.click();
         a.remove();
         URL.revokeObjectURL(url);
-
-    }catch(err){
+    } catch(err) {
         console.error(err);
-        alert('Secure download failed.');
+        alert('Download failed.');
     }
 };
 
