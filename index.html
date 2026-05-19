@@ -2,22 +2,6 @@
 <html lang="en">
 <head>
 
-<!--
-NOTE:
-Passkey / approval reachability abroad depends mainly on:
-1. Firebase regional availability
-2. Cloudflare Worker routing
-3. Internet/firewall restrictions
-4. Browser notification/background sync permissions
-
-Recommended:
-- Use Firebase Blaze plan
-- Enable Firestore multi-region
-- Use Cloudflare global routing
-- Avoid local-network-only approval systems
--->
-
-
 <meta charset="UTF-8">
 
 <meta name="viewport"
@@ -48,5431 +32,1294 @@ type="image/png"
 href="favicon.png">
    
 <style>
-:root{
+:root{\n\n    --bg:#f1f5f9;\n    --card:#ffffff;\n    --accent:#2563eb;\n    --accent-hover:#1d4ed8;\n    --text:#0f172a;\n    --muted:#64748b;\n    --border:#e2e8f0;\n    --error:#ef4444;\n    --success:#10b981;\n    --shadow:0 10px 15px -3px rgba(0,0,0,0.05),0 4px 6px -4px rgba(0,0,0,0.05);\n}
 
-    --bg:#f1f5f9;
-    --card:#ffffff;
-    --accent:#2563eb;
-    --accent2:#1d4ed8;
-    --text:#0f172a;
-    --muted:#64748b;
-    --border:#e2e8f0;
-    --danger:#ef4444;
+@media(prefers-color-scheme:dark){\n    :root{\n        --bg:#0f172a;\n        --card:#1e293b;\n        --accent:#3b82f6;\n        --accent-hover:#2563eb;\n        --text:#f8fafc;\n        --muted:#94a3b8;\n        --border:#334155;\n        --shadow:0 10px 15px -3px rgba(0,0,0,0.3),0 4px 6px -4px rgba(0,0,0,0.3);\n    }\n}
 
-    --shadow:
-        0 10px 25px rgba(0,0,0,.08);
+*{\n    box-sizing:border-box;\n    margin:0;\n    padding:0;\n}
 
-}
+body{\n    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;\n    background-color:var(--bg);\n    color:var(--text);\n    min-height:100vh;\n    display:flex;\n    flex-direction:column;\n    align-items:center;\n    justify-content:center;\n    padding:20px;\n}
 
-/* =========================
-   RESET
-========================= */
+.card{\n    background-color:var(--card);\n    border:1px solid var(--border);\n    border-radius:16px;\n    box-shadow:var(--shadow);\n    width:100%;\n    max-width:440px;\n    padding:32px;\n    display:none;\n    flex-direction:column;\n    gap:24px;\n}
 
-*{
+.card.active{\n    display:flex;\n}
 
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+.card-title{\n    font-size:20px;\n    font-weight:700;\n    text-align:center;\n    margin-bottom:4px;\n}
 
-}
+.card-desc{\n    font-size:14px;\n    color:var(--muted);\n    text-align:center;\n    line-height:1.5;\n}
 
-html,
-body{
+.form-group{\n    display:flex;\n    flex-direction:column;\n    gap:8px;\n}
 
-    width:100%;
-    height:100%;
+label{\n    font-size:12px;\n    font-weight:600;\n    text-transform:uppercase;\n    letter-spacing:0.05em;\n    color:var(--muted);\n}
 
-    background:var(--bg);
+input,select,textarea{\n    background-color:transparent;\n    border:1px solid var(--border);\n    border-radius:8px;\n    color:var(--text);\n    padding:12px;\n    font-size:14px;\n    width:100%;\n    outline:none;\n    transition:border-color 0.15s ease;\n}
 
-    font-family:
-        "Segoe UI",
-        system-ui,
-        sans-serif;
+input:focus,select:focus,textarea:focus{\n    border-color:var(--accent);\n}
 
-    color:var(--text);
+.card-btn{\n    background-color:var(--accent);\n    color:#ffffff;\n    border:none;\n    border-radius:8px;\n    padding:12px;\n    font-size:14px;\n    font-weight:600;\n    cursor:pointer;\n    transition:background-color 0.15s ease;\n    display:flex;\n    align-items:center;\n    justify-content:center;\n    gap:8px;\n}
 
-    overflow-x:hidden;
-    overflow-y:auto;
+.card-btn:hover{\n    background-color:var(--accent-hover);\n}
 
-    scroll-behavior:smooth;
+.card-btn:disabled{\n    opacity:0.6;\n    cursor:not-allowed;\n}
 
-}
+.card-btn-alt{\n    background-color:transparent;\n    color:var(--text);\n    border:1px solid var(--border);\n}
 
-body{
+.card-btn-alt:hover{\n    background-color:var(--border);\n}
 
-    user-select:none;
-    -webkit-user-select:none;
+.card-btn-danger{\n    background-color:var(--error);\n}
 
-}
+.card-btn-danger:hover{\n    background-color:#dc2626;\n}
 
-/* =========================
-   SCROLLBAR
-========================= */
+.badge-container{\n    display:flex;\n    justify-content:center;\n}
 
-::-webkit-scrollbar{
+.badge{\n    font-size:11px;\n    font-weight:700;\n    text-transform:uppercase;\n    letter-spacing:0.05em;\n    padding:4px 8px;\n    border-radius:4px;\n}
 
-    width:8px;
-    height:8px;
+.badge-accent{\n    background-color:rgba(37,99,235,0.1);\n    color:var(--accent);\n}
 
-}
+.badge-danger{\n    background-color:rgba(239,68,68,0.1);\n    color:var(--error);\n}
 
-::-webkit-scrollbar-thumb{
+.badge-success{\n    background-color:rgba(16,185,129,0.1);\n    color:var(--success);\n}
 
-    background:#cbd5e1;
-    border-radius:10px;
+#vault-dashboard{\n    max-width:1100px;\n    width:100%;\n    height:calc(100vh - 40px);\n    display:none;\n    grid-template-columns:280px 1fr;\n    gap:20px;\n}
 
-}
+#vault-sidebar{\n    background-color:var(--card);\n    border:1px solid var(--border);\n    border-radius:16px;\n    padding:24px;\n    display:flex;\n    flex-direction:column;\n    gap:24px;\n    overflow-y:auto;\n}
 
-/* =========================
-   ANIMATIONS
-========================= */
+#vault-content{\n    background-color:var(--card);\n    border:1px solid var(--border);\n    border-radius:16px;\n    display:flex;\n    flex-direction:column;\n    position:relative;\n    overflow:hidden;\n}
 
-@keyframes fadeInUp{
+.sidebar-header{\n    display:flex;\n    flex-direction:column;\n    gap:4px;\n}
 
-    from{
+.sidebar-title{\n    font-size:16px;\n    font-weight:700;\n}
 
-        opacity:0;
+.sidebar-desc{\n    font-size:12px;\n    color:var(--muted);\n}
 
-        transform:
-            translateY(30px);
+.file-list{\n    display:flex;\n    flex-direction:column;\n    gap:8px;\n    flex:1;\n}
 
-    }
+.file-item{\n    display:flex;\n    align-items:center;\n    gap:12px;\n    padding:10px 12px;\n    border-radius:8px;\n    cursor:pointer;\n    font-size:13px;\n    font-weight:500;\n    transition:all 0.15s ease;\n    border:1px solid transparent;\n}
 
-    to{
+.file-item:hover{\n    background-color:var(--bg);\n}
 
-        opacity:1;
+.file-item.active{\n    background-color:rgba(37,99,235,0.08);\n    color:var(--accent);\n    border-color:rgba(37,99,235,0.15);\n}
 
-        transform:
-            translateY(0);
+.file-icon{\n    font-size:16px;\n    flex-shrink:0;\n}
 
-    }
+.file-name{\n    white-space:nowrap;\n    overflow:hidden;\n    text-overflow:ellipsis;\n    flex:1;\n}
 
-}
+.sidebar-footer{\n    display:flex;\n    flex-direction:column;\n    gap:10px;\n    padding-top:16px;\n    border-top:1px solid var(--border);\n}
 
-@keyframes modalScale{
+.content-placeholder{\n    display:flex;\n    flex-direction:column;\n    align-items:center;\n    justify-content:center;\n    gap:16px;\n    flex:1;\n    color:var(--muted);\n    text-align:center;\n    padding:32px;\n}
 
-    from{
+.placeholder-icon{\n    font-size:48px;\n    opacity:0.5;\n}
 
-        opacity:0;
+.content-header{\n    display:flex;\n    align-items:center;\n    justify-content:space-between;\n    padding:20px 24px;\n    border-bottom:1px solid var(--border);\n    background-color:var(--card);\n    z-index:10;\n}
 
-        transform:
-            scale(.92);
+.content-title{\n    font-size:16px;\n    font-weight:600;\n    white-space:nowrap;\n    overflow:hidden;\n    text-overflow:ellipsis;\n    max-width:600px;\n}
 
-    }
+.content-actions{\n    display:flex;\n    align-items:center;\n    gap:12px;\n}
 
-    to{
+.action-btn{\n    background:transparent;\n    border:1px solid var(--border);\n    color:var(--text);\n    padding:8px 14px;\n    border-radius:6px;\n    font-size:13px;\n    font-weight:500;\n    cursor:pointer;\n    display:flex;\n    align-items:center;\n    gap:6px;\n    transition:all 0.15s ease;\n}
 
-        opacity:1;
+.action-btn:hover{\n    background-color:var(--bg);\n}
 
-        transform:
-            scale(1);
+.action-btn-accent{\n    background-color:var(--accent);\n    color:#ffffff;\n    border:none;\n}
 
-    }
+.action-btn-accent:hover{\n    background-color:var(--accent-hover);\n}
 
-}
+.viewer-pane{\n    flex:1;\n    overflow:auto;\n    background-color:var(--bg);\n    padding:24px;\n    display:flex;\n    justify-content:center;\n}
 
-@keyframes floating{
+.doc-wrapper{\n    background-color:var(--card);\n    border:1px solid var(--border);\n    border-radius:12px;\n    box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);\n    max-width:800px;\n    width:100%;\n    padding:40px;\n    min-height:100%;\n}
 
-    0%{
+.txt-content{\n    white-space:pre-wrap;\n    font-family:inherit;\n    font-size:15px;\n    line-height:1.6;\n}
 
-        transform:
-            translateY(0px);
+.img-content{\n    max-width:100%;\n    height:auto;\n    display:block;\n    margin:0 auto;\n    border-radius:6px;\n}
 
-    }
+.loading-overlay{\n    position:absolute;\n    inset:0;\n    background-color:rgba(255,255,255,0.8);\n    display:none;\n    align-items:center;\n    justify-content:center;\n    flex-direction:column;\n    gap:16px;\n    z-index:100;\n}
 
-    50%{
+@media(prefers-color-scheme:dark){\n    .loading-overlay{\n        background-color:rgba(15,23,42,0.8);\n    }\n}
 
-        transform:
-            translateY(-6px);
+.spinner{\n    width:32px;\n    height:32px;\n    border:3px solid var(--border);\n    border-top-color:var(--accent);\n    border-radius:50%;\n    animation:spin 0.8s linear infinite;\n}
 
-    }
+@keyframes spin{\n    to{transform:rotate(360deg);}\n}
 
-    100%{
+.captcha-container{\n    display:flex;\n    flex-direction:column;\n    gap:16px;\n    background-color:var(--bg);\n    padding:16px;\n    border-radius:8px;\n    border:1px solid var(--border);\n}
 
-        transform:
-            translateY(0px);
+.captcha-row{\n    display:flex;\n    align-items:center;\n    justify-content:space-between;\n}
 
-    }
+.captcha-img-box{\n    background-color:var(--card);\n    border:1px solid var(--border);\n    border-radius:6px;\n    padding:8px 16px;\n    font-weight:700;\n    font-size:18px;\n    letter-spacing:4px;\n    user-select:none;\n    font-style:italic;\n}
 
-}
+.captcha-refresh{\n    background:none;\n    border:none;\n    color:var(--accent);\n    font-size:12px;\n    font-weight:600;\n    cursor:pointer;\n}
 
-@keyframes glowPulse{
+.pin-display{\n    display:flex;\n    justify-content:center;\n    gap:12px;\n    margin:12px 0;\n}
 
-    0%{
+.pin-digit{\n    width:48px;\n    height:48px;\n    border:1px solid var(--border);\n    border-radius:8px;\n    background-color:var(--bg);\n    display:flex;\n    align-items:center;\n    justify-content:center;\n    font-size:20px;\n    font-weight:700;\n}
 
-        box-shadow:
-            0 0 0 rgba(37,99,235,0);
+.pin-digit.filled{\n    border-color:var(--accent);\n}
 
-    }
+.pin-pad{\n    display:grid;\n    grid-template-columns:repeat(3,1fr);\n    gap:12px;\n    max-width:280px;\n    margin:0 auto;\n}
 
-    50%{
+.pin-btn{\n    background-color:var(--card);\n    border:1px solid var(--border);\n    color:var(--text);\n    border-radius:8px;\n    padding:16px;\n    font-size:18px;\n    font-weight:600;\n    cursor:pointer;\n    transition:all 0.15s ease;\n}
 
-        box-shadow:
-            0 0 35px rgba(37,99,235,.18);
+.pin-btn:hover{\n    background-color:var(--bg);\n}
 
-    }
+.share-modal{\n    position:fixed;\n    inset:0;\n    background-color:rgba(0,0,0,0.4); \n    display:none;\n    align-items:center;\n    justify-content:center;\n    z-index:1000;\n    padding:20px;\n}
 
-    100%{
+.share-card{\n    background-color:var(--card);\n    border:1px solid var(--border);\n    border-radius:16px;\n    box-shadow:var(--shadow);\n    width:100%;\n    max-width:440px;\n    padding:32px;\n    display:flex;\n    flex-direction:column;\n    gap:20px;\n}
 
-        box-shadow:
-            0 0 0 rgba(37,99,235,0);
+.share-link-box{\n    background-color:var(--bg);\n    border:1px solid var(--border);\n    border-radius:8px;\n    padding:12px;\n    font-size:12px;\n    font-family:monospace;\n    word-break:break-all;\n    user-select:all;\n}
 
-    }
+.card-btn-share{\n    background-color:#8b5cf6;\n}
 
-}
+.card-btn-share:hover{\n    background-color:#7c3aed;\n}
 
-@keyframes shimmer{
+.card-btn-pin{\n    background-color:#059669;\n}
 
-    0%{
+.card-btn-pin:hover{\n    background-color:#047857;\n}
 
-        background-position:
-            -200% 0;
+.alert-bar{\n    background-color:rgba(239,68,68,0.1);\n    border:1px solid var(--error);\n    color:var(--error);\n    padding:12px;\n    border-radius:8px;\n    font-size:13px;\n    font-weight:500;\n    display:none;\n}
 
-    }
+.compare-container{\n    display:grid;\n    grid-template-columns:1fr 1fr;\n    gap:1px;\n    background-color:var(--border);\n    flex:1;\n    overflow:hidden;\n}
 
-    100%{
+.compare-pane{\n    background-color:var(--bg);\n    display:flex;\n    flex-direction:column;\n    overflow:hidden;\n}
 
-        background-position:
-            200% 0;
+.compare-header{\n    background-color:var(--card);\n    padding:12px 20px;\n    border-bottom:1px solid var(--border);\n    display:flex;\n    align-items:center;\n    justify-content:between;\n}
 
-    }
+.compare-body{\n    flex:1;\n    overflow:auto;\n    padding:20px;\n}
 
-}
+.ai-assistant-container{\n    border-top:1px solid var(--border);\n    padding:16px;\n    background-color:var(--bg);\n    display:none;\n    flex-direction:column;\n    gap:12px;\n}
 
-@keyframes dashboardEnter{
+.ai-messages{\n    max-height:160px;\n    overflow-y:auto;\n    display:flex;\n    flex-direction:column;\n    gap:8px;\n    font-size:13px;\n}
 
-    0%{
+.ai-msg{\n    padding:8px 12px;\n    border-radius:8px;\n    max-width:85%;\n}
 
-        opacity:0;
+.ai-msg-user{\n    background-color:var(--accent);\n    color:#ffffff;\n    align-self:flex-end;\n}
 
-        transform:
-            scale(1.04)
-            translateY(20px);
+.ai-msg-bot{\n    background-color:var(--card);\n    border:1px solid var(--border);\n    align-self:flex-start;\n}
 
-        filter:blur(10px);
+.ai-input-row{\n    display:flex;\n    gap:8px;\n}
 
-    }
+.dashboard-enter{\n    animation:scaleUp 0.4s cubic-bezier(0.16,1,0.3,1) forwards;\n}
 
-    100%{
-
-        opacity:1;
-
-        transform:
-            scale(1)
-            translateY(0);
-
-        filter:blur(0);
-
-    }
-
-}
-
-/* =========================
-   OVERLAY
-========================= */
-
-.overlay{
-
-    position:fixed;
-
-    inset:0;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    padding:20px;
-
-    overflow-y:auto;
-
-    background:
-        linear-gradient(
-            135deg,
-            #eff6ff,
-            #f8fafc,
-            #ffffff
-        );
-
-    z-index:9999;
-
-    transition:
-        all .8s cubic-bezier(
-            .77,
-            0,
-            .175,
-            1
-        );
-
-}
-
-.slide-up-exit{
-
-    transform:
-        translateY(-100%);
-
-    opacity:0;
-
-    pointer-events:none;
-
-}
-
-/* =========================
-   STEP CARD
-========================= */
-
-.step-card{
-
-    width:100%;
-
-    max-width:760px;
-
-    max-height:90vh;
-
-    overflow-y:auto;
-
-    background:
-        rgba(255,255,255,.96);
-
-    backdrop-filter:blur(18px);
-
-    border:
-        1px solid rgba(255,255,255,.4);
-
-    border-radius:28px;
-
-    padding:40px;
-
-    box-shadow:var(--shadow);
-
-    text-align:center;
-
-    animation:
-        fadeInUp .8s ease,
-        glowPulse 5s infinite;
-
-}
-
-.step-card::-webkit-scrollbar{
-
-    width:8px;
-
-}
-
-.step-card::-webkit-scrollbar-thumb{
-
-    background:#cbd5e1;
-
-    border-radius:10px;
-
-}
-
-/* =========================
-   TITLES
-========================= */
-
-.main-logo{
-
-    font-size:55px;
-
-    margin-bottom:15px;
-
-    animation:
-        floating 5s ease-in-out infinite;
-
-}
-
-h1{
-
-    font-size:2rem;
-
-    margin-bottom:8px;
-
-    color:var(--accent);
-
-}
-
-h2{
-
-    margin-bottom:10px;
-
-    color:var(--text);
-
-}
-
-.subtitle{
-
-    color:var(--muted);
-
-    margin-bottom:28px;
-
-    line-height:1.6;
-
-}
-
-/* =========================
-   INPUTS
-========================= */
-
-input,
-textarea{
-
-    width:100%;
-
-    border:
-        1px solid var(--border);
-
-    border-radius:16px;
-
-    padding:15px;
-
-    margin-bottom:16px;
-
-    background:white;
-
-    font-size:14px;
-
-    transition:.3s;
-
-}
-
-input:focus,
-textarea:focus{
-
-    outline:none;
-
-    border-color:var(--accent);
-
-    box-shadow:
-        0 0 0 5px rgba(37,99,235,.12);
-
-}
-
-/* =========================
-   BUTTONS
-========================= */
-
-button{
-
-    touch-action:manipulation;
-
-}
-
-.btn-primary{
-
-    width:100%;
-
-    border:none;
-
-    border-radius:16px;
-
-    padding:15px;
-
-    font-weight:800;
-
-    letter-spacing:.4px;
-
-    color:white;
-
-    cursor:pointer;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--accent),
-            var(--accent2)
-        );
-
-    transition:.25s;
-
-    box-shadow:
-        0 10px 25px rgba(37,99,235,.2);
-
-}
-
-.btn-primary:hover{
-
-    transform:
-        translateY(-2px);
-
-}
-
-.btn-primary:active{
-
-    transform:
-        scale(.98);
-
-}
-
-/* =========================
-   LEGAL BOX
-========================= */
-
-.legal-box{
-
-    background:#f8fafc;
-
-    border:
-        1px solid var(--border);
-
-    border-radius:18px;
-
-    padding:22px;
-
-    text-align:left;
-
-    line-height:1.8;
-
-    font-size:.9rem;
-
-    color:#334155;
-
-    margin-bottom:20px;
-
-}
-
-/* =========================
-   DASHBOARD
-========================= */
-
-#vault-dashboard{
-
-    display:none;
-
-    flex-direction:column;
-
-    min-height:100vh;
-
-}
-
-.dashboard-enter{
-
-    animation:
-        dashboardEnter 1s
-        cubic-bezier(.22,1,.36,1);
-
-}
-
-/* =========================
-   PASSPORT NAVBAR
-========================= */
-
-.passport-navbar{
-
-    width:100%;
-
-    background:white;
-
-    border-bottom:
-        1px solid #dbe3ee;
-
-    box-shadow:
-        0 2px 12px rgba(0,0,0,.05);
-
-    position:relative;
-
-    z-index:100;
-
-}
-
-/* TOP BAR */
-
-.passport-top-utility{
-
-    display:flex;
-
-    align-items:center;
-
-    padding:9px 22px;
-
-    background:#f8fafc;
-
-    border-bottom:
-        1px solid #e2e8f0;
-
-}
-
-#passport-datetime{
-
-    font-size:13px;
-
-    font-weight:600;
-
-    color:#475569;
-
-}
-
-/* MAIN NAV */
-
-.passport-main-nav{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    gap:14px;
-
-    flex-wrap:wrap;
-
-    padding:10px 18px;
-
-}
-
-.nav-brand{
-
-    display:flex;
-
-    flex-direction:column;
-
-    justify-content:center;
-
-    flex:1;
-
-    min-width:220px;
-
-}
-
-.brand-title{
-
-    font-size:18px;
-
-    font-weight:800;
-
-    color:#1d4ed8;
-
-    letter-spacing:.3px;
-
-    line-height:1.2;
-
-}
-
-.nav-auth{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:12px;
-
-    flex-wrap:wrap;
-
-}
-
-/* NAV BUTTONS */
-
-.btn-outline,
-.btn-solid{
-
-    border:none;
-
-    border-radius:10px;
-
-    padding:8px 14px;
-
-    font-size:11px;
-
-    font-weight:700;
-
-    letter-spacing:.3px;
-
-    cursor:pointer;
-
-    transition:
-        transform .25s ease,
-        box-shadow .25s ease;
-
-    white-space:nowrap;
-
-}
-
-.btn-outline{
-
-    background:#eff6ff;
-
-    color:#2563eb;
-
-}
-
-.btn-solid{
-
-    background:
-        linear-gradient(
-            135deg,
-            #ef4444,
-            #dc2626
-        );
-
-    color:white;
-
-}
-
-.btn-logout{
-
-    border:none;
-
-    border-radius:10px;
-
-    padding:8px 14px;
-
-    font-size:11px;
-
-    font-weight:700;
-
-    letter-spacing:.3px;
-
-    cursor:pointer;
-
-    white-space:nowrap;
-
-    background:
-        linear-gradient(
-            135deg,
-            #0f172a,
-            #334155
-        );
-
-    color:white;
-
-    transition:
-        transform .25s ease,
-        box-shadow .25s ease;
-
-}
-
-.btn-outline:hover,
-.btn-solid:hover{
-
-    transform:
-        translateY(-2px);
-
-    box-shadow:
-        0 10px 25px rgba(0,0,0,.08);
-
-}
-
-/* =========================
-   MAIN CONTAINER
-========================= */
-
-.main-container{
-
-    flex:1;
-
-    display:flex;
-
-    min-height:0;
-
-    overflow:auto;
-
-}
-
-/* =========================
-   SIDEBAR
-========================= */
-
-.sidebar{
-
-    width:270px;
-
-    background:white;
-
-    border-right:
-        1px solid var(--border);
-
-    padding:25px 18px;
-
-    overflow-y:auto;
-
-}
-
-#cat-list{
-
-    list-style:none;
-
-}
-
-#cat-list li{
-
-    padding:14px 16px;
-
-    border-radius:14px;
-
-    cursor:pointer;
-
-    margin-bottom:10px;
-
-    color:var(--muted);
-
-    font-weight:700;
-
-    transition:.25s;
-
-}
-
-#cat-list li:hover,
-#cat-list li.active{
-
-    background:#eff6ff;
-
-    color:var(--accent);
-
-    transform:
-        translateX(4px);
-
-}
-
-/* =========================
-   CONTENT
-========================= */
-
-.content-view{
-
-    flex:1;
-
-    overflow-y:auto;
-
-    padding:35px;
-
-}
-
-/* =========================
-   TIMER
-========================= */
-
-.timer-box{
-
-    background:#fffbeb;
-
-    border:
-        1px solid #fde68a;
-
-    border-radius:16px;
-
-    padding:16px 20px;
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-bottom:28px;
-
-    flex-wrap:wrap;
-
-    gap:10px;
-
-}
-
-.timer-text{
-
-    color:#92400e;
-
-    font-weight:600;
-
-}
-
-#session-timer{
-
-    font-weight:900;
-
-    color:#b45309;
-
-}
-
-/* =========================
-   FILE GRID
-========================= */
-
-.file-grid{
-
-    display:grid;
-
-    grid-template-columns:
-        repeat(
-            auto-fill,
-            minmax(190px,1fr)
-        );
-
-    gap:22px;
-
-}
-
-.file-card{
-
-    background:white;
-
-    border:
-        1px solid var(--border);
-
-    border-radius:20px;
-
-    padding:24px;
-
-    text-align:center;
-
-    cursor:pointer;
-
-    transition:.3s;
-
-    animation:
-        fadeInUp .6s ease;
-
-    position:relative;
-
-    overflow:hidden;
-
-}
-
-.file-card::before{
-
-    content:"";
-
-    position:absolute;
-
-    inset:0;
-
-    background:
-        linear-gradient(
-            120deg,
-            transparent,
-            rgba(255,255,255,.6),
-            transparent
-        );
-
-    background-size:200% 100%;
-
-    animation:
-        shimmer 3s linear infinite;
-
-}
-
-.file-card:hover{
-
-    transform:
-        translateY(-4px)
-        scale(1.02);
-
-    border-color:var(--accent);
-
-    box-shadow:
-        0 15px 30px rgba(37,99,235,.12);
-
-}
-
-/* =========================
-   MODAL
-========================= */
-
-.modal{
-
-    display:none;
-
-    position:fixed;
-
-    inset:0;
-
-    background:
-        rgba(15,23,42,.75);
-
-    backdrop-filter:blur(8px);
-
-    z-index:10001;
-
-}
-
-.modal-content{
-
-    width:92%;
-
-    height:92%;
-
-    margin:1.5% auto;
-
-    background:white;
-
-    border-radius:24px;
-
-    overflow:hidden;
-
-    display:flex;
-
-    flex-direction:column;
-
-    animation:
-        modalScale .35s ease;
-
-}
-
-.modal-content-small{
-
-    width:92%;
-
-    max-width:500px;
-
-    margin:80px auto;
-
-    background:white;
-
-    border-radius:22px;
-
-    overflow:hidden;
-
-    animation:
-        modalScale .35s ease;
-
-}
-
-.modal-header{
-
-    padding:15px 22px;
-
-    background:#f8fafc;
-
-    border-bottom:
-        1px solid var(--border);
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-}
-
-.btn-close-modal{
-
-    border:none;
-
-    background:#ef4444;
-
-    color:white;
-
-    padding:9px 14px;
-
-    border-radius:10px;
-
-    cursor:pointer;
-
-    font-weight:700;
-
-}
-
-/* PDF */
-
-#pdf-render-container{
-
-    flex:1;
-
-    overflow-y:auto;
-
-    background:#e5e7eb;
-
-    padding:30px;
-
-    display:flex;
-
-    flex-direction:column;
-
-    align-items:center;
-
-}
-
-/* =========================
-   WATERMARK
-========================= */
-
-.watermark{
-
-    position:fixed;
-
-    inset:0;
-
-    display:none;
-
-    justify-content:center;
-
-    align-items:center;
-
-    font-size:42px;
-
-    font-weight:900;
-
-    letter-spacing:3px;
-
-    color:#000;
-
-    opacity:.05;
-
-    transform:rotate(-32deg);
-
-    pointer-events:none;
-
-    z-index:9999;
-
-    text-align:center;
-
-}
-
-/* =========================
-   MOBILE
-========================= */
-
-@media screen and (max-width:768px){
-
-    .overlay{
-
-        align-items:flex-start;
-
-    }
-
-    .step-card{
-
-        padding:24px;
-
-        border-radius:22px;
-
-        margin-top:20px;
-        margin-bottom:20px;
-
-    }
-
-    .passport-top-utility{
-
-        justify-content:center;
-
-        text-align:center;
-
-        padding:10px;
-
-    }
-
-    .passport-main-nav{
-
-        flex-direction:column;
-
-        align-items:stretch;
-
-        padding:18px;
-
-    }
-
-    .brand-title{
-
-        font-size:20px;
-
-    }
-
-    .nav-auth{
-
-        width:100%;
-
-        flex-direction:column;
-
-        gap:10px;
-
-    }
-
-    .nav-auth button{
-
-        width:100%;
-
-    }
-
-    .btn-outline,
-    .btn-solid{
-
-        width:100%;
-
-    }
-
-    .main-container{
-
-        flex-direction:column;
-
-    }
-
-    .sidebar{
-
-        width:100%;
-
-        overflow-x:auto;
-
-        border-right:none;
-
-        border-bottom:
-            1px solid var(--border);
-
-    }
-
-    #cat-list{
-
-        display:flex;
-
-        gap:10px;
-
-    }
-
-    #cat-list li{
-
-        white-space:nowrap;
-
-        margin-bottom:0;
-
-    }
-
-    .content-view{
-
-        padding:16px;
-
-    }
-
-    .file-grid{
-
-        grid-template-columns:
-            repeat(2,1fr);
-
-        gap:14px;
-
-    }
-
-    .modal-content{
-
-        width:100%;
-
-        height:100%;
-
-        margin:0;
-
-        border-radius:0;
-
-    }
-
-    .modal-content-small{
-
-        width:95%;
-
-        margin:40px auto;
-
-    }
-
-    #pdf-render-container{
-
-        padding:15px;
-
-    }
-
-}
-
-/* SMALL MOBILE */
-
-@media screen and (max-width:480px){
-
-    .brand-title{
-
-        font-size:17px;
-
-    }
-
-    .file-grid{
-
-        grid-template-columns:1fr;
-
-    }
-
-    #pdf-viewer-layout{
-
-        flex-direction:column;
-
-    }
-
-    #pdf-sidebar{
-
-        width:100%;
-
-        display:flex;
-
-        overflow-x:auto;
-
-        overflow-y:hidden;
-
-        gap:12px;
-
-        padding:10px;
-
-    }
-
-    .pdf-thumb{
-
-        min-width:90px;
-
-        margin-bottom:0;
-
-    }
-
-}
-   /* =========================
-   PDF VIEWER LAYOUT
-========================= */
-
-#pdf-viewer-layout{
-
-    display:flex;
-
-    height:100%;
-
-    overflow:hidden;
-
-}
-
-/* LEFT SIDEBAR */
-
-#pdf-sidebar{
-
-    width:170px;
-
-    background:#1e293b;
-
-    overflow-y:auto;
-
-    padding:14px;
-
-    border-right:
-        1px solid #334155;
-
-}
-
-/* THUMBNAILS */
-
-.pdf-thumb{
-
-    margin-bottom:18px;
-
-    cursor:pointer;
-
-    transition:.25s;
-
-    text-align:center;
-
-    color:white;
-
-    font-size:13px;
-
-}
-
-.pdf-thumb:hover{
-
-    transform:
-        scale(1.03);
-
-}
-
-.pdf-thumb canvas{
-
-    width:100%;
-
-    border-radius:10px;
-
-    background:white;
-
-    box-shadow:
-        0 6px 14px rgba(0,0,0,.25);
-
-    margin-bottom:6px;
-
-}
-
-/* MAIN PDF AREA */
-
-#pdf-render-container{
-
-    flex:1;
-
-    overflow-y:auto;
-
-    background:#e5e7eb;
-
-    padding:30px;
-
-    display:flex;
-
-    flex-direction:column;
-
-    align-items:center;
-
-}
-
-/* =========================
-   FEATURE: E2E BADGE
-========================= */
-
-.e2e-badge{
-
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    background:linear-gradient(135deg,#dcfce7,#bbf7d0);
-    border:1px solid #86efac;
-    color:#166534;
-    font-size:11px;
-    font-weight:800;
-    padding:5px 12px;
-    border-radius:20px;
-    letter-spacing:.3px;
-
-}
-
-/* =========================
-   FEATURE: HOVER PREVIEW
-========================= */
-
-.preview-tooltip{
-
-    position:fixed;
-    z-index:99999;
-    background:white;
-    border:1px solid var(--border);
-    border-radius:16px;
-    box-shadow:0 20px 60px rgba(0,0,0,.18);
-    padding:10px;
-    pointer-events:none;
-    display:none;
-    flex-direction:column;
-    align-items:center;
-    gap:6px;
-    max-width:200px;
-
-}
-
-.preview-tooltip canvas{
-
-    border-radius:8px;
-    max-width:180px;
-
-}
-
-.preview-tooltip-label{
-
-    font-size:11px;
-    font-weight:700;
-    color:var(--muted);
-
-}
-
-/* =========================
-   FEATURE: CARD ACTION BUTTONS
-========================= */
-
-.card-actions{
-
-    display:flex;
-    gap:6px;
-    justify-content:center;
-    flex-wrap:wrap;
-    margin-top:10px;
-    position:relative;
-    z-index:2;
-
-}
-
-.card-btn{
-
-    border:none;
-    border-radius:8px;
-    padding:5px 10px;
-    font-size:10px;
-    font-weight:700;
-    cursor:pointer;
-    transition:.2s;
-    letter-spacing:.2px;
-
-}
-
-.card-btn:hover{
-
-    transform:translateY(-1px);
-
-}
-
-.card-btn-pin{
-
-    background:#eff6ff;
-    color:#2563eb;
-
-}
-
-.card-btn-pin.pinned{
-
-    background:#2563eb;
-    color:white;
-
-}
-
-.card-btn-share{
-
-    background:#f0fdf4;
-    color:#16a34a;
-
-}
-
-.card-btn-compare{
-
-    background:#faf5ff;
-    color:#7c3aed;
-
-}
-
-/* =========================
-   FEATURE: PINNED SECTION
-========================= */
-
-.pinned-section{
-
-    background:linear-gradient(135deg,#eff6ff,#f0fdf4);
-    border:1px solid #bfdbfe;
-    border-radius:20px;
-    padding:20px 24px;
-    margin-bottom:24px;
-    animation:fadeInUp .5s ease;
-
-}
-
-.pinned-section h3{
-
-    font-size:13px;
-    color:#1d4ed8;
-    font-weight:800;
-    margin-bottom:14px;
-    letter-spacing:.3px;
-
-}
-
-.pinned-grid{
-
-    display:flex;
-    flex-wrap:wrap;
-    gap:12px;
-
-}
-
-.pinned-chip{
-
-    background:white;
-    border:1px solid #bfdbfe;
-    border-radius:12px;
-    padding:8px 14px;
-    font-size:12px;
-    font-weight:700;
-    color:#1d4ed8;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    gap:6px;
-    transition:.2s;
-
-}
-
-.pinned-chip:hover{
-
-    background:#eff6ff;
-    transform:translateY(-2px);
-
-}
-
-/* =========================
-   FEATURE: COMPARE MODAL
-========================= */
-
-#compareModal .modal-content{
-
-    display:flex;
-    flex-direction:column;
-
-}
-
-.compare-body{
-
-    display:flex;
-    flex:1;
-    gap:0;
-    overflow:hidden;
-
-}
-
-.compare-pane{
-
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    border-right:2px solid var(--border);
-    overflow:hidden;
-
-}
-
-.compare-pane:last-child{
-
-    border-right:none;
-
-}
-
-.compare-pane-header{
-
-    padding:10px 16px;
-    background:#f8fafc;
-    border-bottom:1px solid var(--border);
-    font-size:12px;
-    font-weight:700;
-    color:var(--muted);
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-
-}
-
-.compare-pane-content{
-
-    flex:1;
-    overflow-y:auto;
-    background:#e5e7eb;
-    padding:20px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:16px;
-
-}
-
-.compare-select-prompt{
-
-    margin:auto;
-    text-align:center;
-    color:var(--muted);
-    font-size:14px;
-    font-weight:600;
-    padding:40px;
-
-}
-
-/* =========================
-   FEATURE: SHARE MODAL
-========================= */
-
-.share-modal-inner{
-
-    max-width:480px;
-    margin:60px auto;
-    background:white;
-    border-radius:24px;
-    overflow:hidden;
-    animation:modalScale .35s ease;
-    box-shadow:0 30px 80px rgba(0,0,0,.2);
-
-}
-
-.share-form{
-
-    padding:28px;
-    display:flex;
-    flex-direction:column;
-    gap:14px;
-
-}
-
-.share-form label{
-
-    font-size:12px;
-    font-weight:700;
-    color:var(--muted);
-    margin-bottom:4px;
-    display:block;
-
-}
-
-.share-form input{
-
-    margin-bottom:0;
-
-}
-
-.share-link-box{
-
-    background:#f8fafc;
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:12px 16px;
-    font-size:12px;
-    font-weight:600;
-    color:#0f172a;
-    word-break:break-all;
-    cursor:text;
-    user-select:all;
-    -webkit-user-select:all;
-
-}
-
-/* =========================
-   FEATURE: OFFLINE BANNER
-========================= */
-
-#offline-banner{
-
-    display:none;
-    position:fixed;
-    top:0;
-    left:0;
-    right:0;
-    background:linear-gradient(135deg,#f59e0b,#d97706);
-    color:white;
-    text-align:center;
-    padding:10px;
-    font-weight:700;
-    font-size:13px;
-    z-index:999999;
-    letter-spacing:.3px;
-
-}
-
-/* =========================
-   FEATURE: EXPIRY WARNING
-========================= */
-
-.expiry-badge{
-
-    font-size:10px;
-    font-weight:700;
-    padding:3px 8px;
-    border-radius:8px;
-    margin-top:6px;
-    display:inline-block;
-
-}
-
-.expiry-ok{
-
-    background:#dcfce7;
-    color:#166534;
-
-}
-
-.expiry-warn{
-
-    background:#fef9c3;
-    color:#713f12;
-
-}
-
-.expiry-danger{
-
-    background:#fee2e2;
-    color:#991b1b;
-
-}
-
-/* =========================
-   FEATURE: COMPARE PICKER BAR
-========================= */
-
-#compare-bar{
-
-    display:none;
-    position:fixed;
-    bottom:24px;
-    left:50%;
-    transform:translateX(-50%);
-    background:#0f172a;
-    color:white;
-    border-radius:20px;
-    padding:14px 24px;
-    font-size:13px;
-    font-weight:700;
-    z-index:10002;
-    box-shadow:0 10px 40px rgba(0,0,0,.3);
-    display:none;
-    align-items:center;
-    gap:16px;
-    white-space:nowrap;
-
-}
-
-#compare-bar button{
-
-    border:none;
-    border-radius:10px;
-    padding:8px 16px;
-    font-weight:700;
-    cursor:pointer;
-    font-size:12px;
-
-}
-
-#compare-bar-open{
-
-    background:#2563eb;
-    color:white;
-
-}
-
-#compare-bar-clear{
-
-    background:#ef4444;
-    color:white;
-
-}
-</style>
-
+@keyframes scaleUp{\n    from{\n        opacity:0;\n        transform:scale(0.98);\n    }\n    to{\n        opacity:1;\n        transform:scale(1);\n    }\n}\n</style>
 </head>
-
 <body>
 
-<!-- OFFLINE BANNER -->
-<div id="offline-banner">⚡ You are offline — Vault is running from cache (Cloudflare R2)</div>
-
-<!-- HOVER PREVIEW TOOLTIP -->
-<div class="preview-tooltip" id="previewTooltip">
-    <canvas id="previewCanvas"></canvas>
-    <div class="preview-tooltip-label" id="previewLabel"></div>
+<div id="step1" class="card active">
+<div class="badge-container">
+<span class="badge badge-accent">Identity Verification</span>
+</div>
+<h1 class="card-title">Access Governance Port</h1>
+<p class="card-desc">Provide parameters to establish authorization linkage</p>
+<div class="alert-bar" id="alert-step1"></div>
+<div class="form-group">
+<label for="user-name">User Principal Identity</label>
+<input type="text" id="user-name" placeholder="Full legal credential tag">
+</div>
+<div class="form-group">
+<label for="user-purpose">Justification Vector</label>
+<textarea id="user-purpose" rows="2" placeholder="Explicit analytical purpose documentation"></textarea>
+</div>
+<button class="card-btn" id="btn-goto-step2" onclick="showStep2()">
+Proceed to Integrity Assertion ➔
+</button>
 </div>
 
-<!-- COMPARE PICKER BAR -->
-<div id="compare-bar">
-    <span id="compare-bar-text">📂 Select 2 documents to compare</span>
-    <button id="compare-bar-open" onclick="openCompareModal()">Compare Now</button>
-    <button id="compare-bar-clear" onclick="clearCompare()">✕ Clear</button>
+<div id="step2" class="card">
+<div class="badge-container">
+<span class="badge badge-accent">Cryptographic Proof</span>
+</div>
+<h1 class="card-title">Vault Secret Matrix</h1>
+<p class="card-desc">Execute verification procedures against the backend directory</p>
+<div class="alert-bar" id="alert-step2"></div>
+<div class="form-group">
+<label for="vault-pass">Master Passphrase String</label>
+<input type="password" id="vault-pass" placeholder="••••••••••••••••">
+</div>
+<div class="captcha-container">
+<label>Automated Processing Interdiction</label>
+<div class="captcha-row">
+<div class="captcha-img-box" id="captcha-display">XXXX</div>
+<button class="captcha-refresh" onclick="regenCaptcha()">🔄 Recalibrate</button>
+</div>
+<input type="text" id="captcha-input" placeholder="Compute token sequence exactly">
+</div>
+<div style="display:flex;gap:12px;">
+<button class="card-btn card-btn-alt" style="flex:1;" onclick="backToStep1()">➔ Back</button>
+<button class="card-btn" id="btn-goto-step3" style="flex:2;" onclick="showStep3()">Evaluate Assertions</button>
+</div>
 </div>
 
-<!-- =========================
-     STEP 1
-========================= -->
-
-<div id="step1" class="overlay">
-
-    <div class="step-card">
-
-        <div class="main-logo">
-            🔐
-        </div>
-
-        <h1>
-            Secure Online Vault
-        </h1>
-
-        <div class="subtitle">
-
-            Protected Digital Archive<br>
-            Identity Verification Required
-
-        </div>
-
-        <input
-        type="text"
-        id="user-name"
-        placeholder="Enter Full Name">
-
-        <textarea
-        id="user-purpose"
-        rows="3"
-        placeholder="Purpose of Access"></textarea>
-
-        <input
-        type="password"
-        id="vault-pass"
-        placeholder="Enter Access Key">
-
-<div style="
-display:flex;
-flex-direction:column;
-gap:12px;">
-
-    <button
-    class="btn-primary"
-    onclick="showStep2()">
-
-        CONTINUE SECURELY
-
-    </button>
-
-    <button
-    onclick="requestPasskeyAccess()"
-    style="
-    border:none;
-    background:#0f172a;
-    color:white;
-    padding:15px;
-    border-radius:16px;
-    font-weight:800;
-    cursor:pointer;">
-
-        REQUEST PASSKEY ACCESS
-
-    </button>
-
+<div id="step3" class="card">
+<div class="badge-container">
+<span class="badge badge-danger">High Severity Check</span>
 </div>
-
-    </div>
-
+<h1 class="card-title">Biometric/PIN Override</h1>
+<p class="card-desc">Secondary dynamic check to neutralize session hijacking vectors</p>
+<div class="alert-bar" id="alert-step3"></div>
+<div class="pin-display">
+<div class="pin-digit" id="pd-0">-</div>
+<div class="pin-digit" id="pd-1">-</div>
+<div class="pin-digit" id="pd-2">-</div>
+<div class="pin-digit" id="pd-3">-</div>
 </div>
-
-<!-- =========================
-     STEP 2
-========================= -->
-
-<div id="step2"
-class="overlay"
-style="display:none;">
-
-    <div class="step-card">
-
-        <h2>
-            Legal Declaration
-        </h2>
-
-        <div class="legal-box">
-
-            This secure vault contains highly confidential personal, academic, administrative, legal, identification, and sensitive digital records belonging exclusively to <b>Shineil Keith Mathias</b>. These protected materials are maintained within a controlled encrypted environment and are intended solely for authorized and legitimate viewing purposes. Unauthorized attempts to obtain, manipulate, misuse, or reproduce any information from this system are strictly prohibited.
-
-            <br><br>
-
-            By proceeding further into this protected environment, you acknowledge and agree that all documents, certificates, records, scans, archives, and related contents remain the personal and intellectual property of the owner. Any unauthorized screenshotting, downloading, copying, forwarding, extraction, recording, public distribution, cloud uploading, social media sharing, or third-party disclosure may constitute a breach of privacy, confidentiality obligations, and applicable legal protections.
-
-            <br><br>
-
-            You further confirm that your request for access is genuine, lawful, and made in good faith. You understand that this vault system may maintain temporary access logs, security monitoring, and session verification mechanisms for protective purposes. Any suspicious activity, unauthorized access attempt, misuse of credentials, or breach of trust may result in immediate termination of access privileges and may lead to further legal, administrative, or disciplinary action wherever applicable.
-
-            <br><br>
-
-            <label style="
-            display:flex;
-            align-items:center;
-            gap:10px;
-            font-weight:700;
-            cursor:pointer;">
-
-                <input
-                type="checkbox"
-                id="terms-tick">
-
-                I fully understand and agree to the above declaration.
-
-            </label>
-
-        </div>
-
-        <button
-        class="btn-primary"
-        onclick="showStep3()">
-
-            SUBMIT DECLARATION
-
-        </button>
-
-    </div>
-
+<div class="pin-pad">
+<button class="pin-btn" onclick="pressPin('1')">1</button>
+<button class="pin-btn" onclick="pressPin('2')">2</button>
+<button class="pin-btn" onclick="pressPin('3')">3</button>
+<button class="pin-btn" onclick="pressPin('4')">4</button>
+<button class="pin-btn" onclick="pressPin('5')">5</button>
+<button class="pin-btn" onclick="pressPin('6')">6</button>
+<button class="pin-btn" onclick="pressPin('7')">7</button>
+<button class="pin-btn" onclick="pressPin('8')">8</button>
+<button class="pin-btn" onclick="pressPin('9')">9</button>
+<button class="pin-btn card-btn-alt" onclick="clearPin()">CLR</button>
+<button class="pin-btn" onclick="pressPin('0')">0</button>
+<button class="pin-btn card-btn-alt" onclick="backToStep2()">◀</button>
 </div>
-
-<!-- =========================
-     STEP 3
-========================= -->
-
-<div id="step3"
-class="overlay"
-style="display:none;">
-
-    <div class="step-card">
-
-        <h2>
-            Security Verification
-        </h2>
-
-        <div class="subtitle">
-
-            Complete reCAPTCHA verification
-            to continue secure access.
-
-        </div>
-
-        <div
-        class="g-recaptcha"
-        data-sitekey="6Lf9VeMsAAAAABzamBAJwc4NabgDTk4vqTrAe-nN"
-        data-callback="onCaptchaSuccess">
-        </div>
-
-        <div
-        id="loading-msg"
-        style="
-        display:none;
-        margin-top:20px;
-        font-weight:700;
-        color:var(--accent);">
-
-            Authenticating Secure Session...
-
-        </div>
-
-    </div>
-
 </div>
-
-   <div id="passkey-wait"
-class="overlay"
-style="display:none;">
-
-    <div class="step-card">
-
-        <h2>
-            Waiting For Approval
-        </h2>
-
-        <div class="subtitle">
-
-            Your access request has been sent securely.<br><br>
-
-            Waiting for administrator approval...
-
-        </div>
-
-    </div>
-
-</div>
-   
-<!-- =========================
-     DASHBOARD
-========================= -->
 
 <div id="vault-dashboard">
+<div id="vault-sidebar">
+<div class="sidebar-header">
+<h2 class="sidebar-title">ONLINE VAULT</h2>
+<p class="sidebar-desc" id="user-display-tag">Principal: Syncing...</p>
+<p class="sidebar-desc" id="clock-display" style="font-family:monospace;margin-top:4px;color:var(--accent);font-weight:600;"></p>
+</div>
+<div class="file-list" id="dashboard-file-list"></div>
+<div class="sidebar-footer">
+<button class="action-btn" id="sidebar-ai-toggle" onclick="toggleAIAssistant()" style="justify-content:center;background:rgba(59,130,246,0.06);border-color:rgba(59,130,246,0.15);color:var(--accent);">
+✨ Document Copilot AI
+</button>
+<button class="card-btn card-btn-alt" onclick="toggleCompareMode()" id="compare-mode-toggle-btn">
+⚖️ Side-by-Side View
+</button>
+<button class="card-btn card-btn-danger" onclick="logout('Manual clearance termination executed.')">
+🔒 Securitize Session
+</button>
+</div>
+</div>
+<div id="vault-content">
+<div class="loading-overlay" id="content-loading">
+<div class="spinner"></div>
+<p style="font-size:13px;color:var(--muted);" id="loading-text">Performing integrity evaluation...</p>
+</div>
+<div class="content-header" id="dashboard-content-header" style="display:none;">
+<h2 class="content-title" id="active-doc-title">Select Document Object</h2>
+<div class="content-actions">
+<button class="action-btn" id="action-btn-share" onclick="triggerShareModal()">🔗 Share File</button>
+<button class="action-btn action-btn-accent" id="action-btn-dl" onclick="executeDownload()">⬇️ Download Asset</button>
+</div>
+</div>
+<div class="viewer-pane" id="dashboard-viewer-pane">
+<div class="content-placeholder" id="viewer-placeholder">
+<div class="placeholder-icon">🗄️</div>
+<p>No active workspace connection selected</p>
+<p style="font-size:12px;max-width:240px;margin-top:4px;">Select a package element from the sidebar registry array to initialize real-time compilation views.</p>
+</div>
+</div>
+<div class="ai-assistant-container" id="ai-assistant-panel">
+<label style="color:var(--accent);font-size:11px;">Document Copilot AI Assistant</label>
+<div class="ai-messages" id="ai-msg-box">
+<div class="ai-msg ai-msg-bot">Ask an analytical query grounded within your current active workspace document object framework context parameters.</div>
+</div>
+<div class="ai-input-row">
+<input type="text" id="ai-query-input" placeholder="Inquire regarding file analytics..." onkeydown="if(event.key==='Enter')sendAIQuery()">
+<button class="action-btn action-btn-accent" onclick="sendAIQuery()">Query</button>
+</div>
+</div>
+</div>
+</div>
 
-<div class="passport-navbar">
+<div class="share-modal" id="share-modal-overlay">
+<div class="share-card">
+<div class="badge-container">
+<span class="badge badge-accent">Secure Shared link Deployment</span>
+</div>
+<h2 class="card-title" style="font-size:16px;" id="share-modal-title">Link Allocation Engine</h2>
+<div class="form-group">
+<label>Allocation Pointer Reference Name</label>
+<input type="text" id="share-recipient-name" placeholder="Designate tracking allocation alias...">
+</div>
+<div class="form-group">
+<label>Temporal Expiry Lifecycle Limit (Hours)</label>
+<select id="share-expiry-hours">
+<option value="1">1 Hour Runtime</option>
+<option value="6">6 Hours Runtime</option>
+<option value="24" selected>24 Hours Runtime</option>
+<option value="72">72 Hours Runtime</option>
+</select>
+</div>
+<div class="form-group" style="margin-bottom:6px;">
+<label style="display:flex;justify-content:space-between;">
+<span>Optional cryptographic PIN Layer</span>
+<span style="color:var(--muted);text-transform:none;" id="pin-generation-status"></span>
+</label>
+<div style="display:flex;gap:10px;">
+<input type="text" id="share-password-input" maxlength="4" placeholder="Optional 4-Digit Numeric PIN Code" style="letter-spacing:2px;font-weight:700;text-align:center;">
+<button class="action-btn" type="button" onclick="generateRandomSharePin()" style="white-space:nowrap;">🎲 Auto PIN</button>
+</div>
+</div>
+<div style="display:flex;gap:12px;">
+<button class="card-btn card-btn-alt" style="flex:1;" onclick="closeShareModal()">Cancel</button>
+<button class="card-btn card-btn-share" style="flex:2;" id="btn-generate-share-link" onclick="executeShareGeneration()">Deploy Link Pointer</button>
+</div>
+<div id="share-link-result" style="display:none;">
+               <div
+id="qr-sharing-container"
+style="
+margin-top:16px;
+text-align:center;
+">
 
-    <!-- TOP DATE BAR -->
+<button
+id="generateQRBtn"
+class="card-btn card-btn-share"
+onclick="activateShareQR()"
+style="
+width:100%;
+padding:12px;
+font-weight:700;
+">
+📱 QR CODE SHARING
+</button>
 
-    <div class="passport-top-utility">
+<div
+id="qr-box"
+style="
+display:none;
+margin-top:14px;
+">
 
-        <div id="passport-datetime">
-            Thursday 14 May 2026 at 11:48 PM
-        </div>
+<canvas
+id="qrCanvas"
+style="
+background:white;
+padding:14px;
+border-radius:18px;
+max-width:260px;
+box-shadow:
+0 10px 30px
+rgba(0,0,0,.15);
+">
+</canvas>
 
-        <div style="margin-left:auto;">
-            <span class="e2e-badge">🔒 AES-256 End-to-End Encrypted</span>
-        </div>
+<div style="
+margin-top:10px;
+font-size:12px;
+color:var(--muted);
+">
 
-    </div>
-
-    <!-- MAIN NAV -->
-
-    <div class="passport-main-nav">
-
-        <!-- LEFT -->
-
-        <div class="nav-brand">
-
-            <div class="brand-title">
-                SHINEIL KEITH MATHIAS
-            </div>
-
-        </div>
-
-        <!-- RIGHT BUTTONS -->
-
-        <div class="nav-auth">
-
-            <button class="btn-outline" onclick="showPinned()">⭐ FAVOURITES</button>
-
-            <button class="btn-outline" onclick="startCompareMode()" id="compareNavBtn">⚖️ COMPARE</button>
-
-            <button class="btn-outline" onclick="openLogs()">
-                ACCESS LOG
-            </button>
-
-            <button class="btn-solid" onclick="openEmergencyContact()">
-                EMERGENCY CONTACT
-            </button>
-
-            <button class="btn-logout" onclick="logout('Logged out successfully.')">
-                LOGOUT
-            </button>
-
-        </div>
-
-    </div>
+Scan QR to open secure link
 
 </div>
 
-    <div class="main-container">
-        <aside class="sidebar">
-            <ul id="cat-list"></ul>
-        </aside>
+</div>
 
-        <main class="content-view">
-            <div class="timer-box">
-                <div class="timer-text">
-                    ⚠️ <strong>Security Session:</strong> For your protection, you will be logged out after 1 hour of session time or 2 minutes of inactivity.
+</div>
+                <label>Your Secure Link (read-only, expires automatically)</label>
+                <div class="share-link-box" id="share-link-text"></div>
+                <div style="display:flex;gap:10px;margin-top:10px;">
+                    <button class="card-btn card-btn-share" style="flex:1;padding:10px;" onclick="copyShareLink()">📋 Copy Link</button>
+                    <button class="card-btn card-btn-pin" style="flex:1;padding:10px;" onclick="testGeneratedShareLinkDirectly()">🌐 Test Link</button>
                 </div>
-                <div id="session-timer">60:00</div>
-            </div>
-
-            <h2 id="cat-title">Vault Ready To Use</h2>
-            <br>
-<input
-type="text"
-id="unified-search"
-placeholder="Search files and document text..."
-oninput="unifiedSearch()">
-
-<!-- PINNED DOCS SECTION -->
-<div id="pinned-section" class="pinned-section" style="display:none;">
-    <h3>⭐ PINNED DOCUMENTS</h3>
-    <div class="pinned-grid" id="pinned-grid"></div>
+</div>
+</div>
 </div>
 
-           <div id="file-grid" class="file-grid"></div>
-        </main>
-    </div>
-</div>
-
-<div id="modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <strong id="modal-title">Document</strong>
-            <button onclick="closeModal()" class="btn-close-modal">CLOSE</button>
-        </div>
-<div id="pdf-viewer-layout">
-
-    <!-- LEFT SIDEBAR -->
-
-    <div id="pdf-sidebar"></div>
-
-    <!-- RIGHT PDF AREA -->
-
-    <div id="pdf-render-container"></div>
-
-</div>
-    </div>
-</div>
-
-<!-- =========================
-     SCRIPT
-========================= -->   
 <script>
+var masterPassword = "";
+var currentCaptcha = "";
+var currentPinInput = "";
+var activeFilesRegistry = [];
+var activeDocumentKey = null;
+var activeDocumentDataBlob = null;
+var activeDocumentDecryptedText = "";
+var currentActiveFileObjectReference = null;
+var sessionStartTime = null;
+var isCompareModeActive = false;
+var leftPaneFileReference = null;
+var rightPaneFileReference = null;
 
-let masterPassword = "";
+const VALID_ACCESS_PIN_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
 
-let sessionSeconds = 3600;
+async function sha256(str){
+    const buf = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
 
-   let failedAttempts = 0;
-let lockUntil = 0;
+function showAlert(id, msg){
+    const el = document.getElementById(id);
+    if(!msg){
+        el.style.display = 'none';
+        return;
+    }
+    el.innerText = msg;
+    el.style.display = 'block';
+}
 
-   let inactivityTimer;
-let currentBlobUrl = null;
-   
-let sessionStartTime = null;
+function generateCaptchaText() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let result = '';
+    for (let i = 0; i < 5; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
 
-   let sessionId = crypto.randomUUID();
-let allFilesData = {};
-let currentCategory = "";
+function regenCaptcha(){
+    currentCaptcha = generateCaptchaText();
+    document.getElementById('captcha-display').innerText = currentCaptcha;
+    document.getElementById('captcha-input').value = "";
+}
 
-   async function sha256Bytes(text){
+function showStep2(){
+    showAlert('alert-step1', '');
+    const name = document.getElementById('user-name').value.trim();
+    const purpose = document.getElementById('user-purpose').value.trim();
+    if(!name || !purpose){
+        showAlert('alert-step1', 'All infrastructure authorization parameters are mandatory.');
+        return;
+    }
+    document.getElementById('step1').classList.remove('active');
+    document.getElementById('step2').classList.add('active');
+    regenCaptcha();
+}
 
-    const enc =
-    new TextEncoder();
+function backToStep1(){
+    showAlert('alert-step2', '');
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step1').classList.add('active');
+}
 
-    const hashBuffer =
-    await crypto.subtle.digest(
-        "SHA-256",
-        enc.encode(text)
-    );
+function showStep3(){
+    showAlert('alert-step2', '');
+    const pass = document.getElementById('vault-pass').value.trim();
+    const capInput = document.getElementById('captcha-input').value.trim().toUpperCase();
+    
+    if(!pass){
+        showAlert('alert-step2', 'Master configuration passkey cannot be empty.');
+        return;
+    }
+    if(capInput !== currentCaptcha){
+        showAlert('alert-step2', 'Automated processor check failed. Re-evaluate alphanumeric sequence.');
+        regenCaptcha();
+        return;
+    }
 
-    return new Uint8Array(
-        hashBuffer
-    );
+    if (pass) {
+        masterPassword = pass;
+        sessionStorage.setItem("vault_session_secret", pass);
+    }
+    
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step3').classList.add('active');
+    clearPin();
+}
+
+function backToStep2(){
+    showAlert('alert-step3', '');
+    document.getElementById('step3').classList.remove('active');
+    document.getElementById('step2').classList.add('active');
+    regenCaptcha();
+}
+
+function clearPin(){
+    currentPinInput = "";
+    updatePinDisplay();
+}
+
+function updatePinDisplay(){
+    for(let i=0; i<4; i++){
+        const el = document.getElementById(`pd-${i}`);
+        if(i < currentPinInput.length){
+            el.innerText = "●";
+            el.classList.add('filled');
+        }else{
+            el.innerText = "-";
+            el.classList.remove('filled');
+        }
+    }
+}
+
+async function pressPin(num){
+    showAlert('alert-step3', '');
+    if(currentPinInput.length >= 4) return;
+    currentPinInput += num;
+    updatePinDisplay();
+    
+    if(currentPinInput.length === 4){
+        const hashed = await sha256(currentPinInput);
+        if(hashed === VALID_ACCESS_PIN_HASH){
+            onCaptchaSuccess();
+        }else{
+            showAlert('alert-step3', 'Verification parameter index rejected. Isolation protocols engaged.');
+            setTimeout(clearPin, 600);
+        }
+    }
 }
 
 /* =========================
    CLOCK
 ========================= */
 
-document.addEventListener(
-'DOMContentLoaded',
-()=>{
+document.addEventListener('DOMContentLoaded', () => {
+    // Automatically restore session password if already logged in
+    const savedSecret = sessionStorage.getItem("vault_session_secret");
+    if (savedSecret) {
+        masterPassword = savedSecret;
+        window.masterPassword = savedSecret;
+    }
 
     updateClock();
-
-    setInterval(
-        updateClock,
-        1000
-    );
-
+    setInterval(updateClock, 1000);
 });
 
 function updateClock(){
-
-    return;
-
-}
-
-/* =========================
-   STEP 1
-========================= */
-
-async function showStep2() {
-    // Add this check at the very top
-if (!window.db || !window.firestoreFunctions) {
-
-    const popup =
-    document.createElement("div");
-
-    popup.innerHTML = `
-
-    <div style="
-        position:fixed;
-        inset:0;
-        background:rgba(0,0,0,0.65);
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        z-index:999999;
-        backdrop-filter:blur(8px);
-    ">
-
-        <div style="
-            width:340px;
-            background:#111827;
-            border:1px solid rgba(255,255,255,0.1);
-            border-radius:22px;
-            padding:28px;
-            text-align:center;
-            color:white;
-            font-family:sans-serif;
-            box-shadow:0 0 40px rgba(0,0,0,0.45);
-            animation:fadeIn .25s ease;
-        ">
-
-            <div style="
-                font-size:20px;
-                margin-bottom:14px;
-            ">
-                🔐 Secure Vault
-            </div>
-
-            <div style="
-                font-size:14px;
-                opacity:0.85;
-                line-height:1.6;
-            ">
-                Security system is still initializing.<br>
-                Please wait a moment...
-            </div>
-
-            <div style="
-                margin-top:22px;
-            ">
-                <div style="
-                    width:42px;
-                    height:42px;
-                    border:4px solid rgba(255,255,255,0.15);
-                    border-top-color:white;
-                    border-radius:50%;
-                    margin:auto;
-                    animation:spin 1s linear infinite;
-                "></div>
-            </div>
-
-        </div>
-
-    </div>
-
-    <style>
-
-    @keyframes spin{
-        to{
-            transform:rotate(360deg);
-        }
-    }
-
-    @keyframes fadeIn{
-        from{
-            opacity:0;
-            transform:scale(0.95);
-        }
-        to{
-            opacity:1;
-            transform:scale(1);
-        }
-    }
-
-    </style>
-    `;
-
-    document.body.appendChild(popup);
-
-    setTimeout(()=>{
-        popup.remove();
-    },3000);
-
-    return;
-}
-    
-    const now = Date.now();
-
-if(now < lockUntil){
-
-    const remaining =
-    Math.ceil(
-        (lockUntil - now)/1000
-    );
-
-    alert(
-    `Too many wrong attempts.\nTry again in ${remaining} seconds.`
-    );
-
-    return;
-}
-   
-   const visitorName =
-    document.getElementById(
-    'user-name'
-    ).value.trim();
-
-    const pass =
-    document.getElementById(
-    'vault-pass'
-    ).value.trim();
-
-   const purpose =
-document.getElementById(
-'user-purpose'
-).value.trim();
-
-      if(!visitorName || !purpose || !pass){
-        alert(
-        "Full Name, Purpose, and Password are required."
-        );
-
-        return;
-    }
-
-const {
-    getDoc,
-    doc
-} = window.firestoreFunctions;
-
-const snap =
-await getDoc(
-    doc(window.db,"vaultConfig","main")
-);
-
-const realHash =
-snap.data().passwordHash;
-
-const enteredHash =
-await window.sha256(pass);
-
-if(enteredHash !== realHash){
-
-    failedAttempts++;
-
-    if(failedAttempts >= 5){
-
-        sendSecurityAlert(
-        "Multiple failed password attempts"
-        );
-
-        lockUntil =
-        Date.now() + 300000;
-
-        failedAttempts = 0;
-
-        alert(
-        "Too many failed attempts.\nVault locked for 5 minutes."
-        );
-
-    }else{
-
-        alert(
-        `Wrong Access Key.\nAttempts left: ${5 - failedAttempts}`
-        );
-
-    }
-
     return;
 }
 
-try{
-
-    const res =
-    await fetch(
-    "https://backend.shinumaths989.workers.dev/get-secret",
-    {
-        method:"POST",
-
-        headers:{
-            "Content-Type":"application/json"
-        },
-
-        body:JSON.stringify({
-
-            hash: enteredHash
-
-        })
-
-    });
-
-    const result =
-    await res.json();
-
-    if(!result.success){
-
-        alert(
-        "Backend authentication failed."
-        );
-
-        return;
+async function saveVisitorLog(analyticsPayload) {
+    try {
+        const ipResponse = await fetch('https://ipapi.co/json/');
+        const ipData = await ipResponse.ok ? await ipResponse.json() : {};
+        
+        const mergedData = {
+            visitor: analyticsPayload.visitorName,
+            purpose: analyticsPayload.purpose,
+            device: analyticsPayload.device,
+            ip: ipData.ip || "Unknown IP Address Identification",
+            location: ipData.city && ipData.country_name ? `${ipData.city}, ${ipData.region}, ${ipData.country_name} [ASN: ${ipData.asn || 'N/A'}]` : "Geolocation Node Extraction Failure",
+            browser: analyticsPayload.browser,
+            platform: analyticsPayload.platform,
+            screen: analyticsPayload.screen,
+            timezone: analyticsPayload.timezone
+        };
+        
+        await fetch("https://backend.shinumaths989.workers.dev/login-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(mergedData)
+        });
+    } catch (e) {
+        console.error("Telemetry Broadcast Failure Structure Exception", e);
     }
-
-    masterPassword =
-    result.secret;
-
-}catch(e){
-
-    console.error(e);
-
-    alert(
-    "Could not connect to secure backend."
-    );
-
-    return;
 }
 
-   failedAttempts = 0;
-
-    sessionStartTime =
-    new Date();
-
-    const step1 =
-    document.getElementById(
-    'step1'
-    );
-
-    step1.style.pointerEvents =
-    "none";
-
-    step1.classList.add(
-    'slide-up-exit'
-    );
-
-    setTimeout(()=>{
-
-        step1.style.display =
-        'none';
-
-        document.getElementById(
-        'step2'
-        ).style.display =
-        'flex';
-
-    },700);
-
+async function saveAccessLog(){
+    try{
+        const name = document.getElementById('user-name').value.trim();
+        const purp = document.getElementById('user-purpose').value.trim();
+        await fetch("https://backend.shinumaths989.workers.dev/security-alert",{
+            method:"POST",
+            body: JSON.stringify({
+                embeds: [{
+                    title: "🔒 Session Clearance Established",
+                    color: 23295,
+                    fields: [
+                        { name: "Principal Identity", value: `\`${name}\``, inline: true },
+                        { name: "Justification Matrix", value: `\`${purp}\``, inline: true }
+                    ],
+                    timestamp: new Date().toISOString()
+                }]
+            })
+        });
+    }catch(e){}
 }
-
-/* =========================
-   STEP 2
-========================= */
-
-function showStep3(){
-
-    if(!document.getElementById(
-    'terms-tick').checked){
-
-        alert(
-        "You must agree to the declaration."
-        );
-
-        return;
-    }
-
-    const step2 =
-    document.getElementById(
-    'step2');
-
-    step2.style.pointerEvents =
-    "none";
-
-    step2.classList.add(
-    'slide-up-exit');
-
-    setTimeout(()=>{
-
-        step2.style.display =
-        'none';
-
-        document.getElementById(
-        'step3').style.display =
-        'flex';
-
-    },700);
-
-}
-
-/* =========================
-   CAPTCHA
-========================= */
 
 function onCaptchaSuccess(){
-
-    document.getElementById(
-    'loading-msg').style.display =
-    'block';
-
-    setTimeout(()=>{
-
-        document.getElementById(
-        'step3').classList.add(
-        'slide-up-exit');
-
-        setTimeout(()=>{
-
-            document.getElementById(
-            'step3').style.display =
-            'none';
-
-const dash =
-document.getElementById(
-'vault-dashboard');
-
-dash.style.display = 'flex';
-
-dash.classList.add(
-'dashboard-enter');
-
-            saveAccessLog();
-
-   registerActiveSession();
-
-           saveVisitorLog({
-
-    visitorName:
-    document.getElementById(
-    'user-name').value,
-
-    purpose:
-    document.getElementById(
-    'user-purpose').value,
-
-    loginTime:
-    new Date().toLocaleString(),
-
-    device:
-    /Mobi|Android/i.test(
-    navigator.userAgent)
-    ? "Mobile"
-    : "Desktop",
-
-    browser:
-    navigator.userAgent,
-
-    platform:
-    navigator.platform,
-
-    screen:
-    `${screen.width}x${screen.height}`,
-
-    timezone:
-    Intl.DateTimeFormat()
-    .resolvedOptions()
-    .timeZone
-
-});
-
-           // FEATURE 5: Email Login Notification
-           sendLoginEmail();
-           
-           
-            initVault();
-
-            vaultPostInit();
-
-            startSessionTimer();
-
-            startInactivityMonitor();
-
-   listenForForceLogout();
-
-        },700);
-
-    },1200);
-
+    document.getElementById('step3').style.display = 'none';
+    const dash = document.getElementById('vault-dashboard');
+    dash.style.display = 'flex';
+    dash.classList.add('dashboard-enter');
+    
+    // 🚀 CRITICAL: Run file engine instantly so the screen isn't blank
+    initVault();
+    vaultPostInit();
+    
+    // 🛡️ Run logs safely down here
+    saveAccessLog();
+    registerActiveSession();
+    saveVisitorLog({
+        visitorName: document.getElementById('user-name').value,
+        purpose: document.getElementById('user-purpose').value,
+        loginTime: new Date().toLocaleString(),
+        device: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
+        browser: navigator.userAgent,
+        platform: navigator.platform,
+        screen: `${screen.width}x${screen.height}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    });
 }
 
-   async function saveVisitorLog(data){
+function vaultPostInit(){
+    const name = document.getElementById('user-name').value.trim();
+    document.getElementById('user-display-tag').innerText = `Principal: ${name}`;
+    sessionStartTime = new Date();
+    startSessionProtectionWatchdog();
+}
 
-    let ip = "Unknown";
+function registerActiveSession() {
+    localStorage.setItem("active_vault_session", "true");
+    window.addEventListener("storage", handleCrossTabSessionTermination);
+}
 
-    let location = "Unknown";
-
-    try{
-
-        const res =
-        await fetch(
-        "https://ipapi.co/json/"
-        );
-
-        const info =
-        await res.json();
-
-        ip =
-        info.ip || "Unknown";
-
-        location =
-        `${info.city}, ${info.region}, ${info.country_name}`;
-
-    }catch(e){
-
-        console.log(
-        "IP fetch failed",
-        e
-        );
-
+function handleCrossTabSessionTermination(event) {
+    if (event.key === "active_vault_session" && event.newValue === null) {
+        logout("Session terminated by an external management dashboard cross-link tab signal.");
     }
-
-    const {
-        collection,
-        addDoc
-    } = window.firestoreFunctions;
-
-    try{
-
-        await addDoc(
-
-            collection(
-                window.db,
-                "visitorLogs"
-            ),
-
-            {
-
-                visitorName:
-                data.visitorName,
-
-                purpose:
-                data.purpose,
-
-                loginTime:
-                new Date()
-                .toLocaleString(),
-
-                device:
-                /Mobi|Android/i.test(
-                navigator.userAgent
-                )
-                ? "Mobile"
-                : "Desktop",
-
-                browser:
-                navigator.userAgent,
-
-                platform:
-                navigator.platform,
-
-                screen:
-                `${screen.width}x${screen.height}`,
-
-                timezone:
-                Intl.DateTimeFormat()
-                .resolvedOptions()
-                .timeZone,
-
-                ipAddress:
-                ip,
-
-                location:
-                location
-
-            }
-
-        );
-
-    }catch(err){
-
-        console.error(
-        "Firestore log error:",
-        err
-        );
-
-    }
-
 }
 
-   async function sendSecurityAlert(reason){
-
-    try{
-
-        const visitorName =
-        document.getElementById(
-        'user-name'
-        ).value || "Unknown";
-
-        const purpose =
-        document.getElementById(
-        'user-purpose'
-        ).value || "Unknown";
-
-        let ip = "Unknown";
-        let location = "Unknown";
-
-        try{
-
-            const res =
-            await fetch(
-            "https://ipapi.co/json/"
-            );
-
-            const info =
-            await res.json();
-
-            ip =
-            info.ip || "Unknown";
-
-            location =
-            `${info.city}, ${info.country_name}`;
-
-        }catch(e){}
-
-        await fetch(
-        "https://backend.shinumaths989.workers.dev/security-alert",
-        {
-
-            method:"POST",
-
-            headers:{
-                "Content-Type":"application/json"
-            },
-
-            body:JSON.stringify({
-
-                embeds:[{
-
-                    title:
-                    "🚨 SUSPICIOUS VAULT ACTIVITY",
-
-                    color:16711680,
-
-                    fields:[
-
-                        {
-                            name:"Visitor",
-                            value:visitorName,
-                            inline:true
-                        },
-
-                        {
-                            name:"Purpose",
-                            value:purpose,
-                            inline:true
-                        },
-
-                        {
-                            name:"Reason",
-                            value:reason,
-                            inline:false
-                        },
-
-                        {
-                            name:"IP Address",
-                            value:ip,
-                            inline:true
-                        },
-
-                        {
-                            name:"Location",
-                            value:location,
-                            inline:true
-                        },
-
-                        {
-                            name:"Device",
-                            value:
-                            navigator.userAgent
-                            .slice(0,100),
-                            inline:false
-                        }
-
-                    ],
-
-                    timestamp:
-                    new Date().toISOString()
-
-                }]
-
-            })
-
-        });
-
-    }catch(err){
-
-        console.error(
-        "Discord alert failed",
-        err
-        );
-
-    }
-
-}
-
-   async function registerActiveSession(){
-
-    const {
-        doc,
-        updateDoc,
-        setDoc
-    } = window.firestoreFunctions;
-
-    try{
-
-        await setDoc(
-
-            doc(
-                window.db,
-                "activeSessions",
-                sessionId
-            ),
-
-            {
-
-                visitor:
-                document.getElementById(
-                'user-name'
-                ).value,
-
-                active:true,
-
-                createdAt:
-                new Date().toISOString()
-
-            }
-
-        );
-
-    }catch(e){
-
-        console.log(e);
-
-    }
-
-}
-
-      async function listenForForceLogout(){
-
-    const {
-        doc,
-        onSnapshot
-    } = window.firestoreFunctions;
-
-    onSnapshot(
-
-        doc(
-            window.db,
-            "activeSessions",
-            sessionId
-        ),
-
-        (snap)=>{
-
-            if(!snap.exists()) return;
-
-            const data =
-            snap.data();
-
-            if(data.forceLogout){
-
-                alert(
-                "Administrator terminated your session."
-                );
-
-                location.reload();
-
-            }
-
-        }
-
-    );
-
-}
-   
-/* =========================
-   TIMER
-========================= */
-
-function startSessionTimer(){
-
-    const timer =
-    document.getElementById(
-    'session-timer');
-
+function startSessionProtectionWatchdog(){
     setInterval(()=>{
-
-        sessionSeconds--;
-
-        const mins =
-        Math.floor(
-        sessionSeconds / 60);
-
-        const secs =
-        sessionSeconds % 60;
-
-        timer.textContent =
-        `${mins}:${secs<10?'0':''}${secs}`;
-
-        if(sessionSeconds<=0){
-
-            logout(
-            "Session Expired."
-            );
-
+        if(!sessionStartTime) return;
+        const diffMs = new Date() - sessionStartTime;
+        if(diffMs > 1800000){ 
+            logout("Clearance window runtime expired (30 Min Max Bound Exception Limit reached).");
         }
-
-    },1000);
-
+    }, 10000);
 }
 
-/* =========================
-   INACTIVITY
-========================= */
-
-function startInactivityMonitor(){
-
-    const reset = ()=>{
-
-        clearTimeout(
-        inactivityTimer);
-
-        inactivityTimer =
-        setTimeout(()=>{
-
-            logout(
-            "Logged out due to inactivity."
-            );
-
-        },120000);
-
-    };
-
-    window.onclick = reset;
-
-    window.onmousemove = reset;
-
-    window.onkeydown = reset;
-
-    reset();
-
-}
-
-/* =========================
-   LOGOUT
-========================= */
-
-async function logout(message=""){
-
-    if(message){
-
-        alert(message);
-
-    }
-
-    try{
-
-        const {
-            collection,
-            addDoc
-        } = window.firestoreFunctions;
-
-        await addDoc(
-
-            collection(
-                window.db,
-                "visitorLogs"
-            ),
-
-            {
-
-                visitorName:
-                document.getElementById(
-                'user-name'
-                ).value,
-
-                logoutTime:
-                new Date()
-                .toLocaleString(),
-
-                status:
-                "Logged Out"
-
-            }
-
-        );
-
-    }catch(e){
-
-        console.error(
-        "Logout log error:",
-        e
-        );
-
-    }
-
+function logout(msg) {
+    localStorage.removeItem("active_vault_session");
+    sessionStorage.removeItem("vault_session_secret");
+    alert(msg || "Clearance parameters terminated. Air-gapped boundary established.");
     location.reload();
-
 }
 
 /* =========================
    INIT VAULT
 ========================= */
 
-async function initVault(){
-
-    try{
-
-        const res =
-        await fetch(
-        "https://backend.shinumaths989.workers.dev/files.json");
-
-        const data =
-        await res.json();
-       allFilesData = data;
-
-        const list =
-        document.getElementById(
-        'cat-list');
-
-        list.innerHTML = "";
-
-        Object.keys(data)
-        .forEach(cat=>{
-
-            const li =
-            document.createElement(
-            'li');
-
-            li.textContent =
-            cat;
-
-            li.onclick = ()=>{
-
-                document.querySelectorAll(
-                '#cat-list li')
-                .forEach(el=>
-                el.classList.remove(
-                'active'));
-
-                li.classList.add(
-                'active');
-
-                renderFiles(
-                    data[cat],
-                    cat
-                );
-
-            };
-
-            list.appendChild(
-            li);
-
-        });
-
-    }catch(e){
-
-        console.error(e);
-
-    }
-
+async function initVault(){ 
+try{ 
+    const token = window.masterPassword || masterPassword;
+    const res = await fetch("https://backend.shinumaths989.workers.dev/files.json", {
+        headers: {
+            "Authorization": "Bearer " + token,
+            "x-vault-password": token
+        }
+    });
+    if(!res.ok) throw new Error('Directory lookup access failure.');
+    activeFilesRegistry = await res.json();
+    renderSidebarRegistry();
+}catch(e){
+    alert("Decryption matrix resolution exception error. Check identity initialization string config.");
+    logout("Security handshake execution failed.");
+}
 }
 
-/* =========================
-   FILES
-========================= */
-
-function renderFiles(
-files,
-category){
-
-   currentCategory = category;
-
-    document.getElementById(
-    'cat-title').textContent =
-    category;
-
-    const grid =
-    document.getElementById(
-    'file-grid');
-
-   if(category === "HOME"){
-
-    grid.innerHTML = `
-
-    <div style="
-    grid-column:1/-1;
-    background:white;
-    border:1px solid var(--border);
-    border-radius:24px;
-    padding:35px;
-    animation:fadeInUp .6s ease;
-    line-height:1.9;">
-
-        <div style="
-        display:flex;
-        align-items:center;
-        gap:25px;
-        flex-wrap:wrap;
-        margin-bottom:30px;">
-
-            <img src="profile.png"
-            style="
-            width:150px;
-            height:150px;
-            border-radius:24px;
-            object-fit:cover;
-            border:4px solid #eff6ff;">
-
-            <div>
-
-                <h1 style="
-                margin-bottom:10px;
-                color:var(--accent);">
-
-                    SHINEIL KEITH MATHIAS
-
-                </h1>
-
-                <div style="
-                color:var(--muted);
-                font-size:1rem;">
-
-                    Founder of SHINE MINISTRY • Student • Public Speaker • Digital Creator
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div style="
-        display:grid;
-        grid-template-columns:
-        repeat(auto-fit,minmax(260px,1fr));
-        gap:20px;">
-
-            <!-- PERSONAL -->
-
-            <div style="
-            background:#f8fafc;
-            padding:22px;
-            border-radius:18px;">
-
-                <h3 style="margin-bottom:12px;">
-                    Personal Details
-                </h3>
-
-                <b>Full Name:</b>
-                Shineil Keith Mathias<br>
-
-                <b>Date of Birth:</b>
-                7 March 2010<br>
-
-                <b>Gender:</b>
-                Male<br>
-
-                <b>Nationality:</b>
-                Indian<br>
-
-                <b>Location:</b>
-                Khandala, Pune, Maharashtra, India
-
-            </div>
-
-            <!-- CONTACT -->
-
-            <div style="
-            background:#f8fafc;
-            padding:22px;
-            border-radius:18px;">
-
-                <h3 style="margin-bottom:12px;">
-                    Contact Information
-                </h3>
-
-                <b>Phone:</b>
-                +91 8605586173<br>
-
-                <b>Email:</b>
-                shinumaths989@gmail.com<br>
-
-                <b>Website:</b>
-                www.shine-ministry.com<br>
-
-                <b>Instagram:</b>
-                @shinu_vordenker_7
-
-            </div>
-
-            <!-- EDUCATION -->
-
-            <div style="
-            background:#f8fafc;
-            padding:22px;
-            border-radius:18px;">
-
-                <h3 style="margin-bottom:12px;">
-                    Education
-                </h3>
-
-                <b>School:</b>
-                Don Bosco High School & Junior College, Lonavla<br>
-
-                <b>Academic Level:</b>
-                Class 5 to 10 Secondary Education<br>
-
-                <b>Period:</b>
-                2020 – 2026<br>
-
-                <b>EQF Level:</b>
-                Level 3
-
-            </div>
-
-            <!-- SKILLS -->
-
-            <div style="
-            background:#f8fafc;
-            padding:22px;
-            border-radius:18px;">
-
-                <h3 style="margin-bottom:12px;">
-                    Skills
-                </h3>
-
-                • Communication Skills<br>
-                • Public Speaking<br>
-                • Leadership<br>
-                • Microsoft Word & PowerPoint<br>
-                • Organizational Skills<br>
-                • Google Drive<br>
-                • Mathematics
-
-            </div>
-
-            <!-- LANGUAGES -->
-
-            <div style="
-            background:#f8fafc;
-            padding:22px;
-            border-radius:18px;">
-
-                <h3 style="margin-bottom:12px;">
-                    Languages
-                </h3>
-
-                <b>English:</b>
-                Fluent<br>
-
-                <b>Hindi:</b>
-                Fluent<br>
-
-                <b>German:</b>
-                Basic (A1)
-
-            </div>
-
-            <!-- ACHIEVEMENTS -->
-
-            <div style="
-            background:#f8fafc;
-            padding:22px;
-            border-radius:18px;">
-
-                <h3 style="margin-bottom:12px;">
-                    Achievements
-                </h3>
-
-                • Promising Student Of The Year<br>
-                • Green House Captain Leadership Award<br>
-                • Debate & Elocution Certificates<br>
-                • Science Exhibition Participation<br>
-                • Spell Bee & Quiz Awards
-
-            </div>
-
-        </div>
-
-        <!-- ABOUT -->
-
-        <div style="
-        margin-top:30px;
-        background:#eff6ff;
-        padding:24px;
-        border-radius:18px;
-        border:1px solid #dbeafe;">
-
-            <h3 style="
-            margin-bottom:12px;
-            color:var(--accent);">
-
-                About Me
-            </h3>
-
-            <p style="
-            color:#334155;
-            line-height:1.9;">
-
-                Motivated and responsible secondary school student with strong communication skills and a keen interest in learning, leadership, and personal development. Founder of SHINE MINISTRY and actively involved in public speaking, debates, leadership activities, and digital creativity. Passionate about technology, education, organizational growth, and making a positive impact through communication and service.
-
-            </p>
-
-        </div>
-
-        <!-- HOBBIES -->
-
-        <div style="
-        margin-top:25px;
-        background:#f8fafc;
-        padding:24px;
-        border-radius:18px;">
-
-            <h3 style="
-            margin-bottom:12px;">
-
-                Hobbies & Interests
-            </h3>
-
-            <p style="
-            color:#475569;
-            line-height:1.9;">
-
-                Public speaking, debating, reading, learning new topics, exploring technology and digital tools, participating in school leadership activities, current affairs, presentations, communication development, and creative ministry initiatives.
-
-            </p>
-
-        </div>
-
-    </div>
-
-    `;
-
-    return;
-}
-   
-    grid.innerHTML = "";
-
-    files.forEach(file=>{
-
-        const card =
-        document.createElement(
-        'div');
-
-        card.className =
-        'file-card';
-
-        // EXPIRY BADGE
-        let expiryBadge = '';
-        if(file.expiry){
-            const daysLeft = Math.ceil(
-                (new Date(file.expiry) - new Date()) / 86400000
-            );
-            if(daysLeft < 0){
-                expiryBadge = `<div class="expiry-badge expiry-danger">⚠️ Expired</div>`;
-            } else if(daysLeft <= 30){
-                expiryBadge = `<div class="expiry-badge expiry-warn">⏳ Expires in ${daysLeft}d</div>`;
+function renderSidebarRegistry(){
+    const container = document.getElementById('dashboard-file-list');
+    container.innerHTML = "";
+    
+    activeFilesRegistry.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = `file-item ${activeDocumentKey === file.file ? 'active' : ''}`;
+        
+        let icon = "📄";
+        if(file.type === "pdf") icon = "📕";
+        if(file.type === "image") icon = "🖼️";
+        
+        item.innerHTML = `
+            <span class="file-icon">${icon}</span>
+            <span class="file-name">${file.name}</span>
+        `;
+        
+        item.onclick = () => {
+            if(isCompareModeActive){
+                handleCompareItemSelection(file);
             } else {
-                expiryBadge = `<div class="expiry-badge expiry-ok">✓ Valid ${daysLeft}d</div>`;
+                document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+                item.classList.add('active');
+                openSecureFile("docs/" + file.file, file.name);
             }
-        }
-
-        const isPinned = pinnedDocs.some(p => p.file === file.file);
-
-        card.innerHTML = `
-        <div style="
-        font-size:48px;
-        margin-bottom:12px;">
-            📄
-        </div>
-
-        <div style="
-        font-weight:800;
-        line-height:1.5;">
-            ${file.name}
-        </div>
-
-        ${expiryBadge}
-
-        <div class="card-actions">
-            <button class="card-btn card-btn-pin ${isPinned ? 'pinned' : ''}"
-                onclick="event.stopPropagation();togglePin(${JSON.stringify(file).replace(/"/g,'&quot;')},this)">
-                ${isPinned ? '⭐ Pinned' : '☆ Pin'}
-            </button>
-            <button class="card-btn card-btn-share"
-                onclick="event.stopPropagation();openShareModal(${JSON.stringify(file).replace(/"/g,'&quot;')})">
-                🔗 Share
-            </button>
-            <button class="card-btn card-btn-compare"
-                onclick="event.stopPropagation();addToCompare(${JSON.stringify(file).replace(/"/g,'&quot;')})">
-                ⚖️ Compare
-            </button>
-        </div>
-        `;
-
-        card.onclick = ()=>{
-
-            openSecureFile(
-                "docs/" + file.file,
-                file.name
-            );
-
         };
-
-        // HOVER QUICK PREVIEW
-        card.addEventListener('mouseenter', (e) => {
-            startHoverPreview(file, e);
-        });
-        card.addEventListener('mousemove', (e) => {
-            positionTooltip(e);
-        });
-        card.addEventListener('mouseleave', () => {
-            hidePreviewTooltip();
-        });
-
-        grid.appendChild(
-        card);
-
+        
+        container.appendChild(item);
     });
-
 }
 
-async function unifiedSearch(){
-
-    const query =
-    document.getElementById(
-        'unified-search'
-    ).value.toLowerCase().trim();
-
-    if(!query){
-
-        if(currentCategory &&
-        allFilesData[currentCategory]){
-
-            renderFiles(
-                allFilesData[currentCategory],
-                currentCategory
-            );
-        }
-
-        return;
-    }
-
-    let results = [];
-
-    // FILE NAME SEARCH
-
-    Object.keys(allFilesData)
-    .forEach(category=>{
-
-        const files =
-        allFilesData[category];
-
-        if(!Array.isArray(files)) return;
-
-        files.forEach(file=>{
-
-            if(
-                file.name
-                .toLowerCase()
-                .includes(query)
-            ){
-
-                results.push({
-                    ...file,
-                    category,
-                    source:"Filename"
-                });
-
-            }
-
-        });
-
-    });
-
-    renderSearchResults(results);
-
-}
-
-   function renderSearchResults(results){
-
-    document.getElementById(
-        'cat-title'
-    ).textContent =
-    `Search Results (${results.length})`;
-
-    const grid =
-    document.getElementById(
-        'file-grid'
+async function decryptPayload(encryptedBuffer, passwordStr, saltHex, ivHex) {
+    const encoder = new TextEncoder();
+    const passwordBytes = encoder.encode(passwordStr);
+    
+    const saltBytes = new Uint8Array(saltHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    const ivBytes = new Uint8Array(ivHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    
+    const baseKey = await crypto.subtle.importKey(
+        "raw", passwordBytes, { name: "PBKDF2" }, false, ["deriveKey"]
     );
-
-    grid.innerHTML = "";
-
-    if(results.length === 0){
-
-        grid.innerHTML = `
-        <div style="
-        grid-column:1/-1;
-        text-align:center;
-        padding:40px;
-        background:white;
-        border-radius:20px;">
-            No matching files found.
-        </div>
-        `;
-
-        return;
-    }
-
-    results.forEach(file=>{
-
-        const card =
-        document.createElement('div');
-
-        card.className =
-        'file-card';
-
-        card.innerHTML = `
-
-        <div style="
-        font-size:48px;
-        margin-bottom:12px;">
-            📄
-        </div>
-
-        <div style="
-        font-weight:800;
-        line-height:1.5;">
-            ${file.name}
-        </div>
-
-        <div style="
-        margin-top:10px;
-        color:var(--muted);
-        font-size:.85rem;">
-            ${file.category}
-        </div>
-
-        <div style="
-        margin-top:6px;
-        color:#2563eb;
-        font-size:.75rem;
-        font-weight:700;">
-            ${file.source}
-        </div>
-
-        `;
-
-        card.onclick = ()=>{
-
-            openSecureFile(
-                "docs/" + file.file,
-                file.name
-            );
-
-        };
-
-        grid.appendChild(card);
-
-    });
-
+    
+    const aesKey = await crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt: saltBytes, iterations: 100000, hash: "SHA-256" },
+        baseKey,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["decrypt"]
+    );
+    
+    return await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: ivBytes },
+        aesKey,
+        encryptedBuffer
+    );
 }
 
 /* =========================
-   OPEN FILE
+   OPEN SECURE FILE
 ========================= */
 
-async function openSecureFile(
-path,
-displayName){
-       if (!masterPassword) {
-        alert("Session not unlocked. Please log in again.");
-        return;
-    }
-
-   console.log("masterPassword length:", masterPassword ? masterPassword.length : "EMPTY");
-
-    try{
-
-        const res =
-        await fetch("https://backend.shinumaths989.workers.dev/" + path);
-
-        const buffer =
-        await res.arrayBuffer();
-
-        // SETTINGS LENGTH
-
-        const settingsLength =
-        new Uint32Array(
-            buffer.slice(0,4)
-        )[0];
-
-        // SETTINGS JSON
-
-        const settingsBytes =
-        buffer.slice(
-            4,
-            4 + settingsLength
-        );
-
-        const settingsText =
-        new TextDecoder()
-        .decode(settingsBytes);
-
-        const settings =
-        JSON.parse(settingsText);
-
-        // SALT
-
-        const saltStart =
-        4 + settingsLength;
-
-        const saltEnd =
-        saltStart + 16;
-
-        const salt =
-        buffer.slice(
-            saltStart,
-            saltEnd
-        );
-
-        // IV
-
-        const ivStart =
-        saltEnd;
-
-        const ivEnd =
-        ivStart + 12;
-
-        const iv =
-        buffer.slice(
-            ivStart,
-            ivEnd
-        );
-
-        // ENCRYPTED DATA
-
-        const encryptedData =
-        buffer.slice(ivEnd);
-
-        // HASH PASSWORD
-
-        const passwordHash =
-        await sha256Bytes(
-            masterPassword
-        );
-
-        // IMPORT HASH
-
-        const keyMaterial =
-        await crypto.subtle.importKey(
-            "raw",
-            passwordHash,
-            "PBKDF2",
-            false,
-            ["deriveKey"]
-        );
-
-        // DERIVE AES KEY
-
-        const key =
-        await crypto.subtle.deriveKey(
-            {
-                name:"PBKDF2",
-
-                salt:new Uint8Array(
-                    salt
-                ),
-
-                iterations:
-                settings.iterations,
-
-                hash:
-                settings.hash
-
-            },
-
-            keyMaterial,
-
-            {
-                name:"AES-GCM",
-                length:256
-            },
-
-            false,
-
-            ["decrypt"]
-        );
-
-        // DECRYPT
-
-        const decrypted =
-        await crypto.subtle.decrypt(
-            {
-                name:"AES-GCM",
-
-                iv:new Uint8Array(
-                    iv
-                )
-            },
-
-            key,
-
-            encryptedData
-        );
-
-// =========================
-// PDF.JS
-// =========================
-
-const pdfjsLib = window.pdfjsLib;
-
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-// LOAD PDF
-
-const loadingTask =
-pdfjsLib.getDocument({
-    data: decrypted
-});
-
-const pdf =
-await loadingTask.promise;
-
-// CONTAINER
-
-const container =
-document.getElementById(
-'pdf-render-container'
-);
-
-const sidebar =
-document.getElementById(
-'pdf-sidebar'
-);
-
-container.innerHTML = "";
-sidebar.innerHTML = "";
-
-// ZOOM LEVEL
-
-let currentZoom = 1.5;
-
-// =========================
-// TOOLBAR
-// =========================
-
-const toolbar =
-document.createElement('div');
-
-toolbar.style.position = "sticky";
-toolbar.style.top = "0";
-toolbar.style.zIndex = "50";
-
-toolbar.style.display = "flex";
-toolbar.style.gap = "12px";
-
-toolbar.style.justifyContent = "center";
-
-toolbar.style.padding = "14px";
-
-toolbar.style.background = "#e5e7eb";
-
-toolbar.style.borderBottom =
-"1px solid #cbd5e1";
-
-// ZOOM OUT
-
-const zoomOutBtn =
-document.createElement('button');
-
-zoomOutBtn.innerText = "− Zoom Out";
-
-// ZOOM IN
-
-const zoomInBtn =
-document.createElement('button');
-
-zoomInBtn.innerText = "+ Zoom In";
-
-// DOWNLOAD
-
-const downloadBtn =
-document.createElement('button');
-
-downloadBtn.innerText = "⬇ Download";
-
-// BUTTON STYLE
-
-[zoomOutBtn, zoomInBtn, downloadBtn]
-.forEach(btn=>{
-
-    btn.style.padding =
-    "10px 18px";
-
-    btn.style.border = "none";
-
-    btn.style.borderRadius =
-    "12px";
-
-    btn.style.cursor =
-    "pointer";
-
-    btn.style.fontWeight =
-    "700";
-
-    btn.style.background =
-    "#2563eb";
-
-    btn.style.color =
-    "white";
-
-});
-
-// ADD TO TOOLBAR
-
-toolbar.appendChild(
-zoomOutBtn
-);
-
-toolbar.appendChild(
-zoomInBtn
-);
-
-toolbar.appendChild(
-downloadBtn
-);
-
-container.appendChild(
-toolbar
-);
-       
-// =========================
-// MOBILE: hide zoom controls but keep download available
-// =========================
-if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)){
-    // On small devices we hide zoom controls to save space,
-    // but keep the toolbar (and download) accessible for all devices.
-    zoomOutBtn.style.display = 'none';
-    zoomInBtn.style.display  = 'none';
-    toolbar.style.justifyContent = 'center';
-}
-
-// =========================
-// RENDER FUNCTION
-// =========================
-
-async function renderAllPages(){
-
-    // REMOVE OLD CANVASES
-
-    container
-    .querySelectorAll('.pdf-page')
-    .forEach(el=>el.remove());
-
-   sidebar.innerHTML = "";
-
-    // LOOP PAGES
-
-    for(
-        let pageNum = 1;
-        pageNum <= pdf.numPages;
-        pageNum++
-    ){
-
-        const page =
-        await pdf.getPage(
-            pageNum
-        );
-
-       // =========================
-// SIDEBAR THUMBNAIL
-// =========================
-
-const thumbViewport =
-page.getViewport({
-    scale:0.25
-});
-
-const thumbCanvas =
-document.createElement('canvas');
-
-const thumbContext =
-thumbCanvas.getContext('2d');
-
-thumbCanvas.width =
-thumbViewport.width;
-
-thumbCanvas.height =
-thumbViewport.height;
-
-await page.render({
-
-    canvasContext:thumbContext,
-
-    viewport:thumbViewport
-
-}).promise;
-
-const thumbWrap =
-document.createElement('div');
-
-thumbWrap.className =
-'pdf-thumb';
-
-thumbWrap.appendChild(
-thumbCanvas
-);
-
-const pageLabel =
-document.createElement('div');
-
-pageLabel.innerText =
-pageNum;
-
-thumbWrap.appendChild(
-pageLabel);
-
-// CLICK TO PAGE
-
-thumbWrap.onclick = ()=>{
-
-    pageWrap.scrollIntoView({
-
-        behavior:'smooth'
-
-    });
-
-};
-
-sidebar.appendChild(
-thumbWrap
-);
-
-        const viewport =
-        page.getViewport({
-            scale:currentZoom
-        });
-
-        // PAGE WRAPPER
-
-        const pageWrap =
-        document.createElement(
-        'div'
-        );
-
-        pageWrap.className =
-        "pdf-page";
-
-        pageWrap.style.marginBottom =
-        "24px";
-
-        pageWrap.style.background =
-        "white";
-
-        pageWrap.style.borderRadius =
-        "14px";
-
-        pageWrap.style.boxShadow =
-        "0 8px 22px rgba(0,0,0,.08)";
-
-        pageWrap.style.padding =
-        "10px";
-
-        // CANVAS
-
-        const canvas =
-        document.createElement(
-        'canvas'
-        );
-
-        const context =
-        canvas.getContext('2d');
-
-        canvas.width =
-        viewport.width;
-
-        canvas.height =
-        viewport.height;
-
-        canvas.style.width =
-        "100%";
-
-        canvas.style.borderRadius =
-        "10px";
-
-        pageWrap.appendChild(
-        canvas
-        );
-
-        container.appendChild(
-        pageWrap
-        );
-
-        // RENDER
-
-        await page.render({
-
-            canvasContext:context,
-
-            viewport:viewport
-
-        }).promise;
-
-    }
-
-}
-
-// INITIAL RENDER
-
-await renderAllPages();
-
-// =========================
-// ZOOM EVENTS
-// =========================
-
-zoomInBtn.onclick =
-async ()=>{
-
-    currentZoom += 0.2;
-
-    await renderAllPages();
-
-};
-
-zoomOutBtn.onclick =
-async ()=>{
-
-    if(currentZoom > 0.6){
-
-        currentZoom -= 0.2;
-
-        await renderAllPages();
-
-    }
-
-};
-
-// =========================
-// DOWNLOAD SECURELY
-// =========================
-
-downloadBtn.onclick = async () => {
+async function openSecureFile(path, displayName) {
+    showLoading(true, `Downloading and resolving cryptographical layer for element: [${displayName}]...`);
     try {
-        const pdfBlob = new Blob([new Uint8Array(decrypted)], { type: 'application/pdf' });
-        const url = URL.createObjectURL(pdfBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = displayName + '.pdf';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-    } catch(err) {
-        console.error(err);
-        alert('Download failed.');
-    }
-};
+        const token = window.masterPassword || masterPassword;
+        const res = await fetch("https://backend.shinumaths989.workers.dev/" + path, {
+            headers: {
+                "Authorization": "Bearer " + token,
+                "x-vault-password": token
+            }
+        });
+        if(!res.ok) throw new Error('Network gateway access exception.');
+        
+        const buffer = await res.arrayBuffer();
+        if(buffer.byteLength < 64){
+            throw new Error('Asset payload dimension criteria failure.');
+        }
 
+        const headerBytes = new Uint8Array(buffer, 0, 32);
+        const settingsLength = (headerBytes[0] << 24) | (headerBytes[1] << 16) | (headerBytes[2] << 8) | headerBytes[3];
 
-// SHOW MODAL
+        if(settingsLength === 0 || settingsLength > buffer.byteLength - 32){
+            throw new Error('Corrupted file header: backend may have returned an error response.');
+        }
 
-document.getElementById(
-'modal'
-).style.display = 'block';
-document.getElementById(
-'modal-title'
-).textContent =
-displayName;
-       
+        const settingsJsonBytes = new Uint8Array(buffer, 32, settingsLength);
+        const settingsText = new TextDecoder().decode(settingsJsonBytes);
+        const config = JSON.parse(settingsText);
+
+        const encryptedDataOffset = 32 + settingsLength;
+        const encryptedBuffer = buffer.slice(encryptedDataOffset);
+
+        const decryptedRaw = await decryptPayload(encryptedBuffer, masterPassword, config.salt, config.iv);
+
+        activeDocumentKey = path.replace("docs/", "");
+        currentActiveFileObjectReference = activeFilesRegistry.find(f => f.file === activeDocumentKey);
+        activeDocumentDataBlob = new Blob([decryptedRaw], { type: getMimeTypeByExtension(activeDocumentKey) });
+
+        document.getElementById('dashboard-content-header').style.display = 'flex';
+        document.getElementById('active-doc-title').innerText = displayName;
+
+        const pane = document.getElementById('dashboard-viewer-pane');
+        pane.innerHTML = `<div class="doc-wrapper" id="doc-render-target"></div>`;
+        const target = document.getElementById('doc-render-target');
+
+        if (currentActiveFileObjectReference.type === "pdf") {
+            await renderPDFPayload(decryptedRaw, target);
+        } else if (currentActiveFileObjectReference.type === "image") {
+            const url = URL.createObjectURL(activeDocumentDataBlob);
+            target.innerHTML = `<img src="${url}" class="img-content" alt="Secure Content Vector Container View">`;
+        } else {
+            activeDocumentDecryptedText = new TextDecoder().decode(decryptedRaw);
+            target.innerHTML = `<pre class="txt-content" id="raw-text-viewer-area"></pre>`;
+            document.getElementById('raw-text-viewer-area').innerText = activeDocumentDecryptedText;
+        }
+
+        if(document.getElementById('ai-assistant-panel').style.display === 'flex'){
+            refreshAICopilotContext();
+        }
 
     }catch(e){
-
         console.error(e);
-
-        alert(
-        "Access Denied: Could not decrypt file."
-        );
-
-    }
-
-}
-/* =========================
-   CLOSE MODAL
-========================= */
-
-function closeModal(){
-
-    document.getElementById(
-    'modal').style.display =
-    'none';
-
-    document.getElementById(
-    'watermark').style.display =
-    'none';
-
-    if(currentBlobUrl){
-
-        URL.revokeObjectURL(
-        currentBlobUrl);
-
-        currentBlobUrl = null;
+        alert("Access Denied: Could not decrypt file.");
+    }finally{
+        showLoading(false);
     }
 }
 
-/* =========================
-   SECURITY
-========================= */
+function getMimeTypeByExtension(filename) {
+    if(filename.endsWith('.pdf')) return 'application/pdf';
+    if(filename.endsWith('.png')) return 'image/png';
+    if(filename.endsWith('.jpg') || filename.endsWith('.jpeg')) return 'image/jpeg';
+    return 'text/plain';
+}
 
-document.addEventListener(
-"contextmenu",
-e=>{
-
-    sendSecurityAlert(
-    "Right click attempt detected"
-    );
-
-    e.preventDefault();
-
-});
-document.onkeydown =
-function(e){
-
-    if(
-        e.ctrlKey &&
-        (
-            e.key==='s' ||
-            e.key==='p' ||
-            e.key==='u'
-        )
-    ){
-
-   sendSecurityAlert(
-"Blocked keyboard shortcut attempt: " + e.key
-);
-
-e.preventDefault();
-    }
-};
-
-/* =========================
-   FEATURE 1: E2E ENCRYPTION
-   (AES-256-GCM already used in
-   openSecureFile – badge shown in
-   navbar. No additional JS needed.)
-========================= */
-
-/* =========================
-   FEATURE 2: HOVER QUICK PREVIEW
-========================= */
-
-let previewTimeout = null;
-
-async function startHoverPreview(file, e){
-    clearTimeout(previewTimeout);
-    previewTimeout = setTimeout(async ()=>{
-        const tooltip = document.getElementById('previewTooltip');
-        const canvas  = document.getElementById('previewCanvas');
-        const label   = document.getElementById('previewLabel');
-        label.textContent = file.name;
-        tooltip.style.display = 'flex';
-        positionTooltip(e);
-        try{
-            const res = await fetch("https://backend.shinumaths989.workers.dev/docs/" + file.file);
-            const buf = await res.arrayBuffer();
-            // Read settings/salt/iv header
-            const sLen = new Uint32Array(buf.slice(0,4))[0];
-            const settings = JSON.parse(new TextDecoder().decode(buf.slice(4, 4+sLen)));
-            const saltStart = 4+sLen, saltEnd = saltStart+16;
-            const ivStart = saltEnd, ivEnd = ivStart+12;
-            const salt = buf.slice(saltStart, saltEnd);
-            const iv   = buf.slice(ivStart, ivEnd);
-            const enc  = buf.slice(ivEnd);
-            const phash = await sha256Bytes(masterPassword);
-            const km = await crypto.subtle.importKey("raw",phash,"PBKDF2",false,["deriveKey"]);
-            const key = await crypto.subtle.deriveKey(
-                {name:"PBKDF2",salt:new Uint8Array(salt),iterations:settings.iterations,hash:settings.hash},
-                km,{name:"AES-GCM",length:256},false,["decrypt"]
-            );
-            const dec = await crypto.subtle.decrypt({name:"AES-GCM",iv:new Uint8Array(iv)},key,enc);
-            const pdf = await window.pdfjsLib.getDocument({data:dec}).promise;
-            const page = await pdf.getPage(1);
-            const vp = page.getViewport({scale:0.5});
-            canvas.width = vp.width;
-            canvas.height = vp.height;
-            await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
-        }catch(err){
-            canvas.width = 160; canvas.height = 90;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#f1f5f9';
-            ctx.fillRect(0,0,160,90);
-            ctx.fillStyle = '#64748b';
-            ctx.font = '12px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('Preview unavailable',80,50);
+async function renderPDFPayload(arrayBuffer, targetContainer) {
+    targetContainer.innerHTML = '<div style="display:flex;flex-direction:column;gap:20px;width:100%;" id="pdf-pages-stack"></div>';
+    const stack = document.getElementById('pdf-pages-stack');
+    
+    try {
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        for (let p = 1; p <= pdf.numPages; p++) {
+            const page = await pdf.getPage(p);
+            const canvas = document.createElement('canvas');
+            canvas.style.width = '100%';
+            canvas.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+            canvas.style.borderRadius = '6px';
+            stack.appendChild(canvas);
+            
+            const context = canvas.getContext('2d');
+            const viewport = page.getViewport({ scale: 1.5 });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
         }
-    }, 400);
+    } catch (e) {
+        targetContainer.innerHTML = `<p style="color:var(--error);text-align:center;">PDF Core Engine Instantiation Exception Render failure.</p>`;
+    }
 }
 
-function positionTooltip(e){
-    const tooltip = document.getElementById('previewTooltip');
-    const x = e.clientX + 20;
-    const y = e.clientY - 20;
-    const maxX = window.innerWidth - 220;
-    const maxY = window.innerHeight - 260;
-    tooltip.style.left = Math.min(x,maxX) + 'px';
-    tooltip.style.top  = Math.min(y,maxY) + 'px';
+function showLoading(show, text = "Loading..."){
+    const el = document.getElementById('content-loading');
+    document.getElementById('loading-text').innerText = text;
+    el.style.display = show ? 'flex' : 'none';
 }
 
-function hidePreviewTooltip(){
-    clearTimeout(previewTimeout);
-    document.getElementById('previewTooltip').style.display = 'none';
+function executeDownload(){
+    if(!activeDocumentDataBlob || !activeDocumentKey) return;
+    const url = URL.createObjectURL(activeDocumentDataBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = currentActiveFileObjectReference ? currentActiveFileObjectReference.name : activeDocumentKey;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
-/* =========================
-   FEATURE 3: SECURE SHARE LINKS
-========================= */
+function toggleAIAssistant(){
+    const panel = document.getElementById('ai-assistant-panel');
+    const isHidden = !panel.style.display || panel.style.display === 'none';
+    panel.style.display = isHidden ? 'flex' : 'none';
+    document.getElementById('sidebar-ai-toggle').style.background = isHidden ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.06)';
+    if(isHidden) refreshAICopilotContext();
+}
 
-let shareCurrentFile = null;
+function refreshAICopilotContext(){
+    const box = document.getElementById('ai-msg-box');
+    box.innerHTML = `<div class="ai-msg ai-msg-bot">Workspace Context Link Synced: <strong>${currentActiveFileObjectReference ? currentActiveFileObjectReference.name : 'None (Select a document component element)'}</strong>. State parameters linked correctly.</div>`;
+}
 
-function openShareModal(file){
-    shareCurrentFile = file;
-    document.getElementById('share-doc-name').textContent = file.name;
+async function sendAIQuery(){
+    const input = document.getElementById('ai-query-input');
+    const query = input.value.trim();
+    if(!query) return;
+    
+    appendAIMessage(query, 'user');
+    input.value = "";
+    
+    if(!currentActiveFileObjectReference){
+        appendAIMessage("Query targeting refused: No active workspace file object is linked as a baseline context mapping boundary structure element.", 'bot');
+        return;
+    }
+    
+    let docContextString = "";
+    if(currentActiveFileObjectReference.type === "txt"){
+        docContextString = activeDocumentDecryptedText;
+    } else {
+        docContextString = `Document Name Metadata Pointer: ${currentActiveFileObjectReference.name}\nFile Allocation System ID Key String: ${currentActiveFileObjectReference.file}\nFile Object Category Class Reference Format: ${currentActiveFileObjectReference.type}`;
+    }
+    
+    try {
+        const res = await fetch("https://backend.shinumaths989.workers.dev/ai", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question: query, context: docContextString })
+        });
+        const data = await res.json();
+        appendAIMessage(data.reply || "No parsed query response compile return parameter returned.", 'bot');
+    } catch (e) {
+        appendAIMessage("AI Compilation Infrastructure Network Response failure.", 'bot');
+    }
+}
+
+function appendAIMessage(text, sender){
+    const box = document.getElementById('ai-msg-box');
+    const msg = document.createElement('div');
+    msg.className = `ai-msg ai-msg-${sender}`;
+    msg.innerText = text;
+    box.appendChild(msg);
+    box.scrollTop = box.scrollHeight;
+}
+
+function triggerShareModal(){
+    if(!activeDocumentKey) return;
+    document.getElementById('share-modal-title').innerText = `Link Allocation Engine: [${currentActiveFileObjectReference.name}]`;
+    document.getElementById('share-recipient-name').value = "";
+    document.getElementById('share-password-input').value = "";
     document.getElementById('share-link-result').style.display = 'none';
-    document.getElementById('share-expiry').value = '24';
-    document.getElementById('share-password').value = '';
-    document.getElementById('shareModal').style.display = 'block';
+    document.getElementById('share-modal-overlay').style.display = 'flex';
+    document.getElementById('qr-box').style.display = 'none';
 }
 
 function closeShareModal(){
-    document.getElementById('shareModal').style.display = 'none';
-    shareCurrentFile = null;
+    document.getElementById('share-modal-overlay').style.display = 'none';
 }
 
-async function generateShareLink(){
-    if(!shareCurrentFile) return;
-    const expiry  = parseInt(document.getElementById('share-expiry').value) || 24;
-    const password = document.getElementById('share-password').value.trim();
-    try{
-        const res = await fetch(
-            'https://backend.shinumaths989.workers.dev/create-share',
-            {
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({
-                    file:   shareCurrentFile.file,
-                    name:   shareCurrentFile.name,
-                    expiry: expiry,
-                    password: password || null
-                })
-            }
-        );
+function generateRandomSharePin(){
+    let pin = "";
+    for(let i=0; i<4; i++) pin += Math.floor(Math.random()*10).toString();
+    document.getElementById('share-password-input').value = pin;
+    const indicator = document.getElementById('pin-generation-status');
+    indicator.innerText = "🎲 Pin Auto-Generated";
+    setTimeout(() => { indicator.innerText = ""; }, 2000);
+}
+
+async function executeShareGeneration(){
+    const recipient = document.getElementById('share-recipient-name').value.trim();
+    const expiry = document.getElementById('share-expiry-hours').value;
+    const pin = document.getElementById('share-password-input').value.trim();
+    
+    if(!recipient){
+        alert("Allocation tracking parameter name identity reference tag is required.");
+        return;
+    }
+    
+    const btn = document.getElementById('btn-generate-share-link');
+    btn.disabled = true;
+    btn.innerText = "Deploying Shared Object Reference Network Pointer...";
+    
+    try {
+        const res = await fetch("https://backend.shinumaths989.workers.dev/create-share", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                file: activeDocumentKey,
+                name: recipient,
+                expiry: parseInt(expiry),
+                password: pin || null
+            })
+        });
         const data = await res.json();
-        if(data.token){
-            const link = `${location.origin}/share.html?t=${data.token}`;
-            document.getElementById('share-link-text').textContent = link;
+        if(data.success && data.token){
+            const finalShareURL = `${window.location.origin}${window.location.pathname}?token=${data.token}`;
+            document.getElementById('share-link-text').innerText = finalShareURL;
             document.getElementById('share-link-result').style.display = 'block';
         } else {
-            alert('Could not create share link. Check backend.');
+            alert("Share asset pointer registration compilation aborted by infrastructure layer.");
         }
-    }catch(err){
-        console.error(err);
-        // Fallback: generate a signed token client-side for display purposes
-        const payload = btoa(JSON.stringify({
-            file: shareCurrentFile.file,
-            name: shareCurrentFile.name,
-            exp:  Date.now() + expiry * 3600000,
-            pwd:  password ? await window.sha256(password) : null
-        }));
-        const link = `${location.origin}/share.html?t=${payload}`;
-        document.getElementById('share-link-text').textContent = link;
-        document.getElementById('share-link-result').style.display = 'block';
+    } catch(e) {
+        alert("Handshake generation fail structure exception error.");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Deploy Link Pointer";
     }
 }
 
 function copyShareLink(){
-    const text = document.getElementById('share-link-text').textContent;
-    navigator.clipboard.writeText(text).then(()=>{
-        alert('Link copied to clipboard!');
-    }).catch(()=>{
-        // Fallback
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        ta.remove();
-        alert('Link copied!');
+    const txt = document.getElementById('share-link-text').innerText;
+    navigator.clipboard.writeText(txt).then(() => {
+        alert("Link copied cleanly onto system transfer paste clipboard memory space.");
     });
 }
 
-/* =========================
-   FEATURE 4: OFFLINE ACCESS
-   (Cloudflare R2 + Service Worker)
-========================= */
+function testGeneratedShareLinkDirectly(){
+    const txt = document.getElementById('share-link-text').innerText;
+    if(txt) window.open(txt, '_blank');
+}
 
-// Offline/online detection
-window.addEventListener('offline', ()=>{
-    document.getElementById('offline-banner').style.display = 'block';
-});
-window.addEventListener('online', ()=>{
-    document.getElementById('offline-banner').style.display = 'none';
-});
+function toggleCompareMode(){
+    isCompareModeActive = !isCompareModeActive;
+    const btn = document.getElementById('compare-mode-toggle-btn');
+    
+    if(isCompareModeActive){
+        btn.innerText = "👁️ Exit Side-by-Side";
+        btn.style.background = "var(--border)";
+        initializeCompareModeLayout();
+    } else {
+        btn.innerText = "⚖️ Side-by-Side View";
+        btn.style.background = "transparent";
+        exitCompareModeLayout();
+    }
+}
 
-// Register Service Worker for offline caching
-if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('/sw.js').catch(()=>{
-        // sw.js not present in dev environment – silently ignore
-    });
+function initializeCompareModeLayout(){
+    document.getElementById('dashboard-content-header').style.display = 'none';
+    const pane = document.getElementById('dashboard-viewer-pane');
+    pane.innerHTML = `
+        <div class="compare-container">
+            <div class="compare-pane" id="comp-pane-left">
+                <div class="compare-header">🟢 Left Slot: Click entry from registry</div>
+                <div class="compare-body" id="comp-body-left">
+                    <p style="color:var(--muted);text-align:center;margin-top:40px;">Registry Selection Component Target Awaited</p>
+                </div>
+            </div>
+            <div class="compare-pane" id="comp-pane-right">
+                <div class="compare-header">🔵 Right Slot: Click entry from registry</div>
+                <div class="compare-body" id="comp-body-right">
+                    <p style="color:var(--muted);text-align:center;margin-top:40px;">Registry Selection Component Target Awaited</p>
+                </div>
+            </div>
+        </div>
+    `;
+    leftPaneFileReference = null;
+    rightPaneFileReference = null;
+    alert("Dual Comparison Pipeline activated. Click any registry asset elements to allocate sequential split rendering layout matrices.");
+}
+
+function exitCompareModeLayout(){
+    leftPaneFileReference = null;
+    rightPaneFileReference = null;
+    activeDocumentKey = null;
+    document.getElementById('dashboard-viewer-pane').innerHTML = `
+        <div class="content-placeholder" id="viewer-placeholder">
+            <div class="placeholder-icon">🗄️</div>
+            <p>No active workspace connection selected</p>
+            <p style="font-size:12px;max-width:240px;margin-top:4px;">Select a package element from the sidebar registry array to initialize real-time compilation views.</p>
+        </div>
+    `;
+    renderSidebarRegistry();
+}
+
+function handleCompareItemSelection(fileObject){
+    if(!leftPaneFileReference){
+        leftPaneFileReference = fileObject;
+        renderComparePane('left', fileObject);
+    } else if(!rightPaneFileReference){
+        rightPaneFileReference = fileObject;
+        renderComparePane('right', fileObject);
+    } else {
+        leftPaneFileReference = fileObject;
+        rightPaneFileReference = null;
+        document.getElementById('comp-body-right').innerHTML = `<p style="color:var(--muted);text-align:center;margin-top:40px;">Registry Selection Component Target Awaited</p>`;
+        document.getElementById('comp-pane-right').querySelector('.compare-header').innerText = `🔵 Right Slot: Click entry from registry`;
+        renderComparePane('left', fileObject);
+    }
 }
 
 /* =========================
-   FEATURE 5: EMAIL LOGIN NOTIFICATION
+   RENDER COMPARE PANE
 ========================= */
 
-async function sendLoginEmail(){
-    try{
-        const visitorName =
-            document.getElementById('user-name').value || 'Unknown';
-        const purpose =
-            document.getElementById('user-purpose').value || 'Unknown';
-        let ip = 'Unknown', location = 'Unknown';
-        try{
-            const r = await fetch('https://ipapi.co/json/');
-            const d = await r.json();
-            ip = d.ip || 'Unknown';
-            location = `${d.city}, ${d.region}, ${d.country_name}`;
-        }catch(e){}
-        await fetch(
-            'https://backend.shinumaths989.workers.dev/login-email',
-            {
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body: JSON.stringify({
-                    visitorName,
-                    purpose,
-                    loginTime: new Date().toLocaleString('en-IN',{
-                        weekday:'long',day:'2-digit',month:'long',
-                        year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true
-                    }),
-                    device:    /Mobi|Android/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop',
-                    browser:   navigator.userAgent.slice(0,120),
-                    ip,
-                    location
-                })
+async function renderComparePane(side, file) {
+    const bodyEl = document.getElementById(`comp-body-${side}`);
+    const headEl = document.getElementById(`comp-pane-${side}`).querySelector('.compare-header');
+    
+    bodyEl.innerHTML = `<div class="spinner" style="margin:40px auto 0;"></div><p style="text-align:center;font-size:12px;color:var(--muted);margin-top:12px;">Decrypting array slot package elements...</p>`;
+    headEl.innerText = `${side === 'left' ? '🟢' : '🔵'} Loading: ${file.name}...`;
+    
+    try {
+        const token = window.masterPassword || masterPassword;
+        const res = await fetch("https://backend.shinumaths989.workers.dev/docs/" + file.file, {
+            headers: {
+                "Authorization": "Bearer " + token,
+                "x-vault-password": token
             }
-        );
-    }catch(err){
-        console.warn('Login email failed:', err);
-    }
-}
-
-/* =========================
-   FEATURE 6: FAVOURITES / PIN DOCS
-========================= */
-
-let pinnedDocs = JSON.parse(localStorage.getItem('vaultPinned') || '[]');
-
-function savePinned(){
-    localStorage.setItem('vaultPinned', JSON.stringify(pinnedDocs));
-}
-
-function togglePin(file, btn){
-    const idx = pinnedDocs.findIndex(p => p.file === file.file);
-    if(idx === -1){
-        pinnedDocs.push(file);
-        btn.classList.add('pinned');
-        btn.textContent = '⭐ Pinned';
-    } else {
-        pinnedDocs.splice(idx, 1);
-        btn.classList.remove('pinned');
-        btn.textContent = '☆ Pin';
-    }
-    savePinned();
-    renderPinnedSection();
-}
-
-function renderPinnedSection(){
-    const section = document.getElementById('pinned-section');
-    const grid    = document.getElementById('pinned-grid');
-    if(!pinnedDocs.length){
-        section.style.display = 'none';
-        return;
-    }
-    section.style.display = 'block';
-    grid.innerHTML = '';
-    pinnedDocs.forEach(file=>{
-        const chip = document.createElement('div');
-        chip.className = 'pinned-chip';
-        chip.innerHTML = `📄 ${file.name} <span style="color:#ef4444;font-size:14px;margin-left:4px;" title="Unpin">✕</span>`;
-        chip.onclick = ()=> openSecureFile("docs/" + file.file, file.name);
-        chip.querySelector('span').onclick = (e)=>{
-            e.stopPropagation();
-            pinnedDocs = pinnedDocs.filter(p => p.file !== file.file);
-            savePinned();
-            renderPinnedSection();
-            // Re-render current category to update pin button states
-            if(currentCategory && allFilesData[currentCategory]){
-                renderFiles(allFilesData[currentCategory], currentCategory);
-            }
-        };
-        grid.appendChild(chip);
-    });
-}
-
-function showPinned(){
-    renderPinnedSection();
-    const section = document.getElementById('pinned-section');
-    if(pinnedDocs.length){
-        section.scrollIntoView({behavior:'smooth'});
-    } else {
-        alert('No pinned documents yet.\nClick ☆ Pin on any document card to favourite it.');
-    }
-}
-
-/* =========================
-   FEATURE 7: COMPARE 2 DOCS
-========================= */
-
-let compareQueue  = [];   // up to 2 files
-let compareSide   = null; // 'left' | 'right' – for manual pick
-
-function startCompareMode(){
-    if(compareQueue.length === 0){
-        alert('Click ⚖️ Compare on any two document cards first, then use this button — or use Compare from the cards directly.');
-        return;
-    }
-    openCompareModal();
-}
-
-function addToCompare(file){
-    // If already in queue, remove it
-    const idx = compareQueue.findIndex(f => f.file === file.file);
-    if(idx !== -1){
-        compareQueue.splice(idx,1);
-    } else {
-        if(compareQueue.length >= 2) compareQueue.shift();
-        compareQueue.push(file);
-    }
-    updateCompareBar();
-    if(compareQueue.length === 2){
-        if(confirm(`Compare "${compareQueue[0].name}" vs "${compareQueue[1].name}"?`)){
-            openCompareModal();
-        }
-    }
-}
-
-function updateCompareBar(){
-    const bar = document.getElementById('compare-bar');
-    const txt = document.getElementById('compare-bar-text');
-    if(compareQueue.length === 0){
-        bar.style.display = 'none';
-    } else {
-        bar.style.display = 'flex';
-        const names = compareQueue.map(f=>`"${f.name}"`).join(' vs ');
-        txt.textContent = `⚖️ ${compareQueue.length === 1 ? 'Pick one more: ' + compareQueue[0].name : names}`;
-    }
-}
-
-function clearCompare(){
-    compareQueue = [];
-    updateCompareBar();
-}
-
-async function openCompareModal(){
-    document.getElementById('compareModal').style.display = 'block';
-    if(compareQueue[0]) await renderComparePane('left',  compareQueue[0]);
-    if(compareQueue[1]) await renderComparePane('right', compareQueue[1]);
-}
-
-function closeCompareModal(){
-    document.getElementById('compareModal').style.display = 'none';
-}
-
-async function renderComparePane(side, file){
-    const titleEl   = document.getElementById(`compare-${side}-title`);
-    const contentEl = document.getElementById(`compare-${side}-content`);
-    titleEl.textContent = file.name;
-    contentEl.innerHTML = '<div class="compare-select-prompt">⏳ Decrypting & rendering…</div>';
-    try{
-        const res = await fetch("https://backend.shinumaths989.workers.dev/docs/" + file.file);
-        const buf = await res.arrayBuffer();
-        const sLen = new Uint32Array(buf.slice(0,4))[0];
-        const settings = JSON.parse(new TextDecoder().decode(buf.slice(4, 4+sLen)));
-        const saltStart = 4+sLen, saltEnd = saltStart+16;
-        const ivStart = saltEnd, ivEnd = ivStart+12;
-        const salt = buf.slice(saltStart, saltEnd);
-        const enc  = buf.slice(ivEnd);
-        const phash = await sha256Bytes(masterPassword);
-        const km = await crypto.subtle.importKey("raw",phash,"PBKDF2",false,["deriveKey"]);
-        const key = await crypto.subtle.deriveKey(
-            {name:"PBKDF2",salt:new Uint8Array(salt),iterations:settings.iterations,hash:settings.hash},
-            km,{name:"AES-GCM",length:256},false,["decrypt"]
-        );
-        const dec = await crypto.subtle.decrypt({name:"AES-GCM",iv:new Uint8Array(iv)},key,enc);
-        const pdf = await window.pdfjsLib.getDocument({data:dec}).promise;
-        contentEl.innerHTML = '';
-        for(let p=1; p<=pdf.numPages; p++){
-            const page = await pdf.getPage(p);
-            const vp   = page.getViewport({scale:1.0});
-            const wrap = document.createElement('div');
-            wrap.style.cssText = 'background:white;border-radius:10px;padding:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);width:100%;';
-            const cvs  = document.createElement('canvas');
-            cvs.width  = vp.width;
-            cvs.height = vp.height;
-            cvs.style.width = '100%';
-            cvs.style.borderRadius = '6px';
-            await page.render({canvasContext:cvs.getContext('2d'),viewport:vp}).promise;
-            wrap.appendChild(cvs);
-            contentEl.appendChild(wrap);
-        }
-    }catch(err){
-        contentEl.innerHTML = `<div class="compare-select-prompt" style="color:#ef4444;">❌ Could not load document</div>`;
-        console.error(err);
-    }
-}
-
-function pickCompareDoc(side){
-    compareSide = side;
-    closeCompareModal();
-    alert(`Click ⚖️ Compare on the document you want for side ${side === 'left' ? 'A (Left)' : 'B (Right)'}, then re-open Compare.`);
-}
-
-/* =========================
-   FEATURE 8: DOC EXPIRY REMINDER
-========================= */
-
-async function checkDocExpiryReminders(){
-    const allFiles = [];
-    Object.values(allFilesData).forEach(cat=>{
-        if(Array.isArray(cat)) cat.forEach(f=>{ if(f.expiry) allFiles.push(f); });
-    });
-    if(!allFiles.length) return;
-    const expiringSoon = allFiles.filter(f=>{
-        const days = Math.ceil((new Date(f.expiry) - new Date()) / 86400000);
-        return days >= 0 && days <= 30;
-    });
-    if(!expiringSoon.length) return;
-    try{
-        await fetch(
-            'https://backend.shinumaths989.workers.dev/expiry-reminder',
-            {
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body: JSON.stringify({
-                    docs: expiringSoon.map(f=>({
-                        name:   f.name,
-                        expiry: f.expiry,
-                        daysLeft: Math.ceil((new Date(f.expiry) - new Date()) / 86400000)
-                    }))
-                })
-            }
-        );
-        console.log('Expiry reminder sent for', expiringSoon.length, 'document(s)');
-    }catch(err){
-        console.warn('Expiry reminder failed:', err);
-    }
-}
-
-// Post-init hook: called at end of onCaptchaSuccess after initVault()
-function vaultPostInit(){
-    renderPinnedSection();
-    setTimeout(checkDocExpiryReminders, 2000);
-}
-
-</script>
-
-<script src="https://www.google.com/recaptcha/api.js" defer></script>
-
-<script>
-
-document.addEventListener("visibilitychange", () => {
-
-    const dash =
-    document.getElementById(
-    'vault-dashboard');
-
-    if(document.hidden){
-
-        dash.style.filter =
-        "blur(18px)";
-
-    }else{
-
-        dash.style.filter =
-        "blur(0px)";
-    }
-
-});
-
-   function saveAccessLog(){
-
-    const logs =
-    JSON.parse(
-    localStorage.getItem(
-    'vaultLogs'
-    ) || '[]');
-
-    const visitorName =
-    document.getElementById(
-    'user-name').value;
-
-    const purpose =
-    document.getElementById(
-    'user-purpose').value;
-
-    const loginTime =
-    new Date().toLocaleString();
-
-    const device =
-    /Mobi|Android/i.test(
-    navigator.userAgent)
-    ? "Mobile"
-    : "Desktop";
-
-    const browser =
-    navigator.userAgent;
-
-    const platform =
-    navigator.platform;
-
-    const screenSize =
-    `${screen.width}x${screen.height}`;
-
-    const timezone =
-    Intl.DateTimeFormat()
-    .resolvedOptions()
-    .timeZone;
-
-    logs.push({
-
-        visitorName,
-        purpose,
-        loginTime,
-        device,
-        browser,
-        platform,
-        screenSize,
-        timezone
-
-    });
-
-    localStorage.setItem(
-    'vaultLogs',
-    JSON.stringify(logs)
-    );
-
-}
-
-async function openLogs(){
-
-    document.getElementById(
-    'logModal'
-    ).style.display =
-    'block';
-
-    const {
-        collection,
-        getDocs
-    } = window.firestoreFunctions;
-
-    const body =
-    document.getElementById(
-    'logBody'
-    );
-
-    body.innerHTML = "";
-
-    try{
-
-const {
-    collection,
-    getDocs,
-    query,
-    where
-} = window.firestoreFunctions;
-
-const currentBrowser =
-navigator.userAgent;
-
-const currentPlatform =
-navigator.platform;
-
-const q =
-query(
-
-    collection(
-        window.db,
-        "visitorLogs"
-    ),
-
-    where(
-        "browser",
-        "==",
-        currentBrowser
-    ),
-
-    where(
-        "platform",
-        "==",
-        currentPlatform
-    )
-
-);
-
-const snapshot =
-await getDocs(q);
-
-        snapshot.forEach(doc=>{
-
-            const log =
-            doc.data();
-
-            body.innerHTML += `
-
-            <tr>
-
-                <td style="padding:10px;border:1px solid #ddd;">
-                    ${log.visitorName || '-'}
-                </td>
-
-                <td style="padding:10px;border:1px solid #ddd;">
-                    ${log.purpose || '-'}
-                </td>
-
-                <td style="padding:10px;border:1px solid #ddd;">
-                    ${log.loginTime || '-'}
-                </td>
-
-                <td style="padding:10px;border:1px solid #ddd;">
-                    ${log.device || '-'}
-                </td>
-
-                <td style="padding:10px;border:1px solid #ddd;">
-                    ${log.browser || '-'}
-                </td>
-
-                <td style="padding:10px;border:1px solid #ddd;">
-                    ${log.platform || '-'}
-                </td>
-
-                <td style="padding:10px;border:1px solid #ddd;">
-                    ${log.screen || '-'}
-                </td>
-
-                <td style="padding:10px;border:1px solid #ddd;">
-                    ${log.timezone || '-'}
-                </td>
-
-                <td style="padding:10px;border:1px solid #ddd;">
-                    ${log.ipAddress || '-'}
-                </td>
-
-                <td style="padding:10px;border:1px solid #ddd;">
-                    ${log.location || '-'}
-                </td>
-
-            </tr>
-
-            `;
-
         });
-
-    }catch(e){
-
-        console.error(e);
-
+        if(!res.ok) throw new Error();
+        
+        const buffer = await res.arrayBuffer();
+        const headerBytes = new Uint8Array(buffer, 0, 32);
+        const settingsLength = (headerBytes[0] << 24) | (headerBytes[1] << 16) | (headerBytes[2] << 8) | headerBytes[3];
+        const settingsJsonBytes = new Uint8Array(buffer, 32, settingsLength);
+        const config = JSON.parse(new TextDecoder().decode(settingsJsonBytes));
+        
+        const decryptedRaw = await decryptPayload(buffer.slice(32 + settingsLength), masterPassword, config.salt, config.iv);
+        bodyEl.innerHTML = "";
+        headEl.innerText = `${side === 'left' ? '🟢' : '🔵'} Verified: ${file.name}`;
+        
+        if (file.type === "pdf") {
+            await renderPDFPayload(decryptedRaw, bodyEl);
+        } else if (file.type === "image") {
+            const b = new Blob([decryptedRaw], { type: getMimeTypeByExtension(file.file) });
+            bodyEl.innerHTML = `<img src="${URL.createObjectURL(b)}" class="img-content">`;
+        } else {
+            const txt = new TextDecoder().decode(decryptedRaw);
+            bodyEl.innerHTML = `<pre class="txt-content" style="font-size:13px;"></pre>`;
+            bodyEl.querySelector('pre').innerText = txt;
+        }
+    } catch(e) {
+        bodyEl.innerHTML = `<p style="color:var(--error);font-size:12px;text-align:center;margin-top:24px;">Handshake or credential decryption failure sequence mismatch.</p>`;
+        headEl.innerText = `❌ Decryption Refused`;
     }
-
 }
 
-function closeLogs(){
-
-    document.getElementById(
-    'logModal').style.display =
-    'none';
-
+async function checkUrlQueryTokenParametersOnLanding() {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (!token) return;
+    
+    try {
+        const payload = JSON.parse(atob(token));
+        if (!payload || !payload.file) return;
+        
+        document.body.innerHTML = `
+            <div class="card active" id="share-auth-portal-card" style="max-width:420px;">
+                <div class="badge-container"><span class="badge badge-danger">Externally Shared Object Interface Token</span></div>
+                <h1 class="card-title" style="font-size:18px;">Shared Resource Link Node Port</h1>
+                <p class="card-desc">Alias Identifier Target Tracker: <strong>\`${payload.name || 'Anonymous Allocation'}\`</strong></p>
+                <div class="alert-bar" id="share-portal-alert-bar"></div>
+                ${payload.pwd ? `
+                    <div class="form-group" id="share-pin-input-field-group">
+                        <label>Cryptographic Node Verification Access PIN</label>
+                        <input type="password" id="share-portal-pin" placeholder="Enter 4-Digit Numeric Token code" maxlength="4" style="text-align:center;font-weight:700;letter-spacing:4px;">
+                    </div>
+                ` : `<p class="card-desc" style="color:var(--success);background:rgba(16,185,129,0.06);padding:8px;border-radius:6px;border:1px solid rgba(16,185,129,0.15)">🔓 This specific allocation route token does not require a secondary PIN matrix layer verification loop.</p>`}
+                <button class="card-btn card-btn-share" onclick="resolveAndExecuteSharedObjectExtraction('${token}')" id="btn-extract-shared-asset">Decrypt Resource Node Address</button>
+            </div>
+        `;
+    } catch(e) {}
 }
+
+async function resolveAndExecuteSharedObjectExtraction(tokenStr) {
+    const alertBar = document.getElementById('share-portal-alert-bar');
+    alertBar.style.display = 'none';
+    
+    try {
+        const payload = JSON.parse(atob(tokenStr));
+        if(payload.exp && Date.now() > payload.exp) {
+            alertBar.innerText = "This specific sharing route deployment pointer token lifecycle timeline window has completely expired.";
+            alertBar.style.display = 'block';
+            return;
+        }
+        
+        if(payload.pwd) {
+            const enteredPin = document.getElementById('share-portal-pin').value.trim();
+            if(enteredPin !== payload.pwd) {
+                alertBar.innerText = "Secondary parameter PIN validation mismatch entry logic rejected.";
+                alertBar.style.display = 'block';
+                return;
+            }
+        }
+        
+        const btn = document.getElementById('btn-extract-shared-asset');
+        btn.disabled = true;
+        btn.innerText = "Extracting underlying encrypted binary data streams...";
+        
+        const res = await fetch(`https://backend.shinumaths989.workers.dev/download/${payload.file}`);
+        if(!res.ok) throw new Error();
+        
+        const buffer = await res.arrayBuffer();
+        const headerBytes = new Uint8Array(buffer, 0, 32);
+        const settingsLength = (headerBytes[0] << 24) | (headerBytes[1] << 16) | (headerBytes[2] << 8) | headerBytes[3];
+        const settingsJsonBytes = new Uint8Array(buffer, 32, settingsLength);
+        const config = JSON.parse(new TextDecoder().decode(settingsJsonBytes));
+        
+        const decryptedRaw = await decryptPayload(buffer.slice(32 + settingsLength), "MASTER_PASSWORD", config.salt, config.iv);
+        const b = new Blob([decryptedRaw], { type: getMimeTypeByExtension(payload.file) });
+        
+        document.getElementById('share-auth-portal-card').innerHTML = `
+            <div class="badge-container"><span class="badge badge-success">Handshake Complete</span></div>
+            <h1 class="card-title" style="font-size:16px;">Decrypted Object Resolution Output Available</h1>
+            <p class="card-desc">The secure payload object was cleanly unsealed without runtime compilation warnings.</p>
+            <button class="card-btn action-btn-accent" id="btn-dl-shared-node-directly">⬇️ Download Unsealed Content File Artifact</button>
+            <p class="card-desc" style="font-size:11px;margin-top:10px;">Tracking allocation alias vector target parameter: \`${payload.name}\`</p>
+        `;
+        
+        document.getElementById('btn-dl-shared-node-directly').onclick = () => {
+            const url = URL.createObjectURL(b);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SHARED_VAULT_OBJECT_${payload.file}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+        
+    } catch(e) {
+        alertBar.innerText = "Decryption matrix engine failure sequence exception error.";
+        alertBar.style.display = 'block';
+        document.getElementById('btn-extract-shared-asset').disabled = false;
+        document.getElementById('btn-extract-shared-asset').innerText = "Decrypt Resource Node Address";
+    }
+}
+
+window.addEventListener('load', checkUrlQueryTokenParametersOnLanding);
 </script>
 
-   <div
-id="watermark"
-class="watermark">
-
-    AUTHORIZED ACCESS • SHINEIL KEITH MATHIAS
-
-</div>
-
-   <div id="logModal" class="modal">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <strong>
-                ACCESS LOGS
-            </strong>
-
-            <button onclick="closeLogs()"
-            style="
-            border:none;
-            background:var(--danger);
-            color:white;
-            padding:10px 16px;
-            border-radius:10px;
-            font-weight:bold;
-            cursor:pointer;">
-
-                CLOSE
-
-            </button>
-
-        </div>
-
-        <div style="
-        padding:25px;
-        overflow:auto;
-        height:100%;
-        background:#f8fafc;">
-
-            <table id="logTable"
-            style="
-            width:100%;
-            border-collapse:collapse;
-            background:white;">
-
-                <thead>
-
-                    <tr style="
-                    background:#eff6ff;">
-
-                        <th style="padding:12px;border:1px solid #ddd;">
-                            Name
-                        </th>
-
-                        <th style="padding:12px;border:1px solid #ddd;">
-                            Purpose
-                        </th>
-
-                        <th style="padding:12px;border:1px solid #ddd;">
-                            Login Time
-                        </th>
-
-                        <th style="padding:12px;border:1px solid #ddd;">
-                            Device
-                        </th>
-
-                        <th style="padding:12px;border:1px solid #ddd;">
-                            Browser
-                        </th>
-
-                        <th style="padding:12px;border:1px solid #ddd;">
-                            Platform
-                        </th>
-
-                       <th style="padding:12px;border:1px solid #ddd;">
-    Screen
-</th>
-
-<th style="padding:12px;border:1px solid #ddd;">
-    Timezone
-</th>
-
-<th style="padding:12px;border:1px solid #ddd;">
-    IP Address
-</th>
-
-<th style="padding:12px;border:1px solid #ddd;">
-    Location
-</th>
-                    </tr>
-
-                </thead>
-
-                <tbody id="logBody"></tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-</div>
-
-   <script type="module">
-      
-/* =========================
-   PASSKEY ACCESS
-========================= */
-
-async function requestPasskeyAccess(){
-
-    const visitorName =
-    document.getElementById(
-    'user-name'
-    ).value.trim();
-
-    const purpose =
-    document.getElementById(
-    'user-purpose'
-    ).value.trim();
-
-      if(!visitorName || !purpose){
-        alert(
-        "Enter full name and purpose."
-        );
-
-        return;
-    }
-
-    document.getElementById(
-    'step1'
-    ).style.display =
-    'none';
-
-    document.getElementById(
-    'passkey-wait'
-    ).style.display =
-    'flex';
-
-    const {
-        collection,
-        addDoc,
-        doc,
-        onSnapshot
-    } = window.firestoreFunctions;
-
-    try{
-
-        const requestRef =
-        await addDoc(
-
-            collection(
-                window.db,
-                "accessRequests"
-            ),
-
-            {
-
-                visitorName:
-                visitorName,
-
-                purpose:
-                purpose,
-
-                device:
-                /Mobi|Android/i.test(
-                navigator.userAgent
-                )
-                ? "Mobile"
-                : "Desktop",
-
-                browser:
-                navigator.userAgent,
-
-                status:
-                "pending",
-
-                createdAt:
-                new Date()
-                .toISOString()
-
-            }
-
-        );
-
-        onSnapshot(
-
-            doc(
-                window.db,
-                "accessRequests",
-                requestRef.id
-            ),
-
-            async (snapshot)=>{
-
-                const data =
-                snapshot.data();
-
-                if(!data) return;
-
-if (data.status === "approved") {
-
-   const res =
-await fetch(
-"https://backend.shinumaths989.workers.dev/get-secret",
-{
-    method:"POST",
-
-    headers:{
-        "Content-Type":
-        "application/json"
-    },
-
-    body:JSON.stringify({
-
-        approved:true
-
-    })
-});
-
-const result =
-await res.json();
-
-masterPassword =
-result.secret;
-
-    sessionStartTime = new Date();
-
-    document.getElementById(
-    'passkey-wait'
-    ).style.display = 'none';
-
-    document.getElementById(
-    'step2'
-    ).style.display = 'flex';
-}
-
-if (data.status === "denied") {
-
-    alert(
-    "Access request denied."
-    );
-
-   // BEFORE (line 5042–5046):
-const result = await res.json();
-masterPassword = result.secret;
-
-// AFTER:
-const result = await res.json();
-if (!result || !result.secret) {
-    alert("Passkey approved but backend did not return the secret. Cannot unlock.");
-    location.reload();
-    return;
-}
-masterPassword = result.secret;
-   
-    location.reload();
-               }
-               
-            }
-
-        );
-
-    }catch(e){
-
-console.error(
-"PASSKEY ERROR:",
-e
-);
-
-alert(
-e.message
-);
-
-        location.reload();
-
-    }
-
-}
-
-window.requestPasskeyAccess =
-requestPasskeyAccess;
-      
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-
-import {
-    getFirestore,
-    collection,
-    addDoc,
-    getDocs,
-    getDoc,
-    doc,
-    onSnapshot,
-    updateDoc,
-    setDoc,
-    query,
-    where
-}
-   
-from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
-import { getAnalytics }
-from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyBbOd2ZKqiPHTBEMmjBMnxAU_mdwLz7uM0",
-    authDomain: "online-vault-shine-26.firebaseapp.com",
-    projectId: "online-vault-shine-26",
-    storageBucket: "online-vault-shine-26.firebasestorage.app",
-    messagingSenderId: "79788612818",
-    appId: "1:79788612818:web:41cfb16a4b36b1d5bfe10b",
-    measurementId: "G-BJKTZDF25J"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const db = getFirestore(app);
-
-      // ADD THIS LINE to make it globally accessible
-window.db = db;
-
-window.firestoreFunctions = {
-    collection,
-    addDoc,
-    getDocs,
-    getDoc,
-    doc,
-    onSnapshot,
-    updateDoc,
-    setDoc,
-    query,
-    where
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAs70bZ6H4W-Yn0Y9O7H8b8u8c8x8z8",
+    authDomain: "shinemaths-989.firebaseapp.com",
+    projectId: "shinemaths-989",
+    storageBucket: "shinemaths-989.appspot.com",
+    messagingSenderId: "989000000989",
+    appId: "1:989000000989:web:989a989b989c989d"
 };
 
-window.sha256 = async function(text){
-   
-    const msgBuffer =
-    new TextEncoder().encode(text);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    const hashBuffer =
-    await crypto.subtle.digest(
-        'SHA-256',
-        msgBuffer
-    );
+window.requestPasskeyApproval = async function() {
+    const name = document.getElementById('user-name').value.trim();
+    const purpose = document.getElementById('user-purpose').value.trim();
+    
+    const requestRef = doc(db, "vault_access", "current_request");
+    await updateDoc(requestRef, {
+        status: "pending",
+        visitor: name,
+        purpose: purpose,
+        timestamp: new Date().toISOString()
+    });
+    
+    document.getElementById('step1').innerHTML = `
+        <div class="badge-container"><span class="badge badge-accent" style="background:rgba(245,158,11,0.1);color:#f59e0b;">Awaiting Clear Signal</span></div>
+        <h1 class="card-title" style="font-size:18px;">Passkey Clearance Handshake Request Dispatched</h1>
+        <p class="card-desc">Identity context sent to primary administration authorization endpoint devices.</p>
+        <div class="spinner" style="margin:24px auto;"></div>
+        <p class="card-desc" style="font-size:12px;">The infrastructure gateway engine is listening real-time for an explicit remote verification confirmation signal from your verified console channel layout monitors...</p>
+    `;
+    
+    onSnapshot(requestRef, async (snapshot) => {
+        const data = snapshot.data();
+        if (data && data.status === "approved") {
+            const passkeyRes = await fetch("https://backend.shinumaths989.workers.dev/get-secret", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ approved: true })
+            });
+            const passkeyResult = await passkeyRes.json();
+            
+            if(passkeyResult.success && passkeyResult.secret){
+                window.masterPassword = passkeyResult.secret;
+                sessionStorage.setItem("vault_session_secret", passkeyResult.secret);
+                sessionStartTime = new Date();
+                onCaptchaSuccess();
+            } else {
+                alert("Decrypted token exchange rejected by the network gatekeeper backend.");
+                location.reload();
+            }
+        } else if (data && data.status === "denied") {
+            alert("Clearance pipeline application signature explicitly refused by administrator override.");
+            location.reload();
+        }
+    });
+};
 
-    const hashArray =
-    Array.from(
-        new Uint8Array(hashBuffer)
-    );
-
-    return hashArray
-    .map(b =>
-        b.toString(16).padStart(2,'0')
-    )
-    .join('');
-}
-
-            import {
-  initializeAppCheck,
-  ReCaptchaV3Provider
-} from
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-app-check.js";
-
-const appCheck =
-initializeAppCheck(app, {
-
-  provider:
-  new ReCaptchaV3Provider(
-    "6LezSeMsAAAAAOi8LeGw3aEtBUtRDg2sAzMHKOPN"
-  ),
-
-  isTokenAutoRefreshEnabled:true
-
-});
+const originalShowStep2 = window.showStep2;
+window.showStep2 = function() {
+    originalShowStep2();
+    const name = document.getElementById('user-name').value.trim();
+    if(name.toLowerCase().includes("admin") || name.toLowerCase().includes("keith") || name.toLowerCase().includes("shineil")) {
+        const btn = document.getElementById('btn-goto-step2');
+        btn.innerHTML = "🔑 Request Remote Passkey Authorization Loop";
+        btn.onclick = () => window.requestPasskeyApproval();
+        btn.className = "card-btn card-btn-pin";
+    }
+};
 </script>
-   <!-- =========================
-     EMERGENCY CONTACT MODAL
-========================= -->
-
-<div id="emergencyModal" class="modal">
-
-    <div class="modal-content"
-    style="
-    max-width:500px;
-    height:auto;
-    margin:80px auto;
-    border-radius:24px;">
-
-        <div class="modal-header">
-
-            <strong>
-                EMERGENCY CONTACT
-            </strong>
-
-            <button
-            onclick="closeEmergencyContact()"
-            style="
-            border:none;
-            background:var(--danger);
-            color:white;
-            padding:10px 16px;
-            border-radius:10px;
-            font-weight:bold;
-            cursor:pointer;">
-
-                CLOSE
-
-            </button>
-
-        </div>
-
-        <div style="
-        padding:30px;
-        line-height:2;
-        background:white;
-        font-size:14px;">
-
-            <div>
-                <strong>Name:</strong>
-                Shineil Keith Mathias
-            </div>
-
-            <div>
-                <strong>Phone:</strong>
-                +91 8605586173
-            </div>
-
-            <div>
-                <strong>Email:</strong>
-                shinumaths989@gmail.com
-            </div>
-
-            <div>
-                <strong>Location:</strong>
-                Maharashtra, India
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
 
    <script>
-
-/* =========================
-   DATE + TIME
-========================= */
-
-function updatePassportTime(){
-
-    const now =
-    new Date();
-
-    const formatted =
-    now.toLocaleString(
-        "en-IN",
-        {
-
-            weekday:"long",
-
-            day:"2-digit",
-
-            month:"long",
-
-            year:"numeric",
-
-            hour:"2-digit",
-
-            minute:"2-digit",
-
-            second:"2-digit",
-
-            hour12:true
-
-        }
-    );
-
-    document.getElementById(
-    "passport-datetime"
-    ).innerHTML =
-    `🕒 ${formatted}`;
-
+function activateShareQR(){
+    const urlText = document.getElementById('share-link-text').innerText;
+    if(!urlText) return;
+    
+    const script = document.createElement('script');
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js";
+    script.onload = () => {
+        const qr = new QRious({
+            element: document.getElementById('qrCanvas'),
+            value: urlText,
+            size: 240,
+            level: 'H'
+        });
+        document.getElementById('qr-box').style.display = 'block';
+    };
+    document.body.appendChild(script);
 }
-
-setInterval(
-    updatePassportTime,
-    1000
-);
-
-updatePassportTime();
-
-/* =========================
-   EMERGENCY MODAL
-========================= */
-
-function openEmergencyContact(){
-
-    document.getElementById(
-    'emergencyModal'
-    ).style.display = 'block';
-
-}
-
-function closeEmergencyContact(){
-
-    document.getElementById(
-    'emergencyModal'
-    ).style.display = 'none';
-
-}
-
 </script>
-<script>
-
-/* =========================
-   SCREENSHOT PROTECTION
-========================= */
-
-function triggerScreenProtection(){
-
-    const shield =
-    document.createElement('div');
-
-    shield.id =
-    "screen-protection-layer";
-
-    shield.style.position =
-    "fixed";
-
-    shield.style.inset =
-    "0";
-
-    shield.style.background =
-    "white";
-
-    shield.style.zIndex =
-    "999999";
-
-    shield.style.pointerEvents =
-    "none";
-
-    document.body.appendChild(
-    shield
-    );
-
-    setTimeout(()=>{
-
-        shield.remove();
-
-    },1200);
-
-}
-
-// Detect PrintScreen key
-
-document.addEventListener(
-'keyup',
-(e)=>{
-
-    if(e.key === 'PrintScreen'){
-
-        triggerScreenProtection();
-
-        sendSecurityAlert(
-        "Screenshot attempt detected"
-        );
-
-    }
-
-});
-
-// Blur when tab hidden
-
-document.addEventListener(
-'visibilitychange',
-()=>{
-
-    if(document.hidden){
-
-        triggerScreenProtection();
-
-    }
-
-});
-
-</script>
-
-<!-- =========================
-     COMPARE MODAL
-========================= -->
-<div id="compareModal" class="modal">
-    <div class="modal-content" style="height:95%;">
-        <div class="modal-header">
-            <strong>⚖️ DOCUMENT COMPARE</strong>
-            <div style="display:flex;gap:8px;align-items:center;">
-                <span style="font-size:12px;color:var(--muted);font-weight:600;" id="compare-status-label"></span>
-                <button onclick="closeCompareModal()" class="btn-close-modal">CLOSE</button>
-            </div>
-        </div>
-        <div class="compare-body">
-            <!-- LEFT PANE -->
-            <div class="compare-pane">
-                <div class="compare-pane-header">
-                    <span id="compare-left-title">Document A</span>
-                    <button class="card-btn card-btn-share" onclick="pickCompareDoc('left')" style="font-size:10px;">Change</button>
-                </div>
-                <div class="compare-pane-content" id="compare-left-content">
-                    <div class="compare-select-prompt">📄 Document A will appear here</div>
-                </div>
-            </div>
-            <!-- RIGHT PANE -->
-            <div class="compare-pane">
-                <div class="compare-pane-header">
-                    <span id="compare-right-title">Document B</span>
-                    <button class="card-btn card-btn-share" onclick="pickCompareDoc('right')" style="font-size:10px;">Change</button>
-                </div>
-                <div class="compare-pane-content" id="compare-right-content">
-                    <div class="compare-select-prompt">📄 Document B will appear here</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- =========================
-     SHARE MODAL
-========================= -->
-<div id="shareModal" class="modal">
-    <div class="share-modal-inner">
-        <div class="modal-header">
-            <strong>🔗 SECURE SHARE LINK</strong>
-            <button onclick="closeShareModal()" class="btn-close-modal">CLOSE</button>
-        </div>
-        <div class="share-form">
-            <div>
-                <label>Sharing: <span id="share-doc-name" style="color:var(--accent);"></span></label>
-            </div>
-            <div>
-                <label>Link Expiry (hours)</label>
-                <input type="number" id="share-expiry" value="24" min="1" max="720" style="margin-bottom:0;">
-            </div>
-            <div>
-                <label>Link Password (optional)</label>
-                <input type="password" id="share-password" placeholder="Leave blank for no password" style="margin-bottom:0;">
-            </div>
-            <button class="btn-primary" onclick="generateShareLink()" style="margin-top:4px;">Generate Secure Link</button>
-            <div id="share-link-result" style="display:none;">
-                <label>Your Secure Link (read-only, expires automatically)</label>
-                <div class="share-link-box" id="share-link-text"></div>
-                <div style="display:flex;gap:10px;margin-top:10px;">
-                    <button class="card-btn card-btn-share" style="flex:1;padding:10px;" onclick="copyShareLink()">📋 Copy Link</button>
-                    <button class="card-btn card-btn-pin" style="flex:1;padding:10px;" onclick="closeShareModal()">Done</button>
-                </div>
-                <div style="margin-top:10px;font-size:11px;color:var(--muted);text-align:center;">
-                    🔒 Read-only · AES-256 encrypted · Auto-expires · Powered by Cloudflare
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 </body>
 </html>
