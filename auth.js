@@ -250,19 +250,83 @@ function updateClock(){
 
 }
 
+/* ========================= EXTRACT PDF TEXT ========================= */
 async function searchAI() {
 
-  const query =
-    document.getElementById(
-      "aiSearch"
-    ).value;
+  try {
 
-  const queryEmbedding =
-    await getEmbedding(query);
+    const query =
+      document
+      .getElementById(
+        "unified-search"
+      )
+      .value
+      .trim()
+      .toLowerCase();
 
+    if (!query) {
+      alert("Type search");
+      return;
+    }
+
+    const token =
+      localStorage.getItem(
+        "sessionToken"
+      );
+
+    const res =
+      await fetch(
+        "https://YOUR-BACKEND-DOMAIN/ai-search",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+            "application/json",
+
+            "Authorization":
+            `Bearer ${token}`
+          },
+
+          body:
+          JSON.stringify({
+            query
+          })
+        }
+      );
+
+    const data =
+      await res.json();
+
+    console.log(data);
+
+    if (
+      !data.results ||
+      data.results.length === 0
+    ) {
+      alert(
+        "No matching document found"
+      );
+      return;
+    }
+
+    alert(
+      "Found in: " +
+      data.results
+      .map(x => x.fileName)
+      .join(", ")
+    );
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert(
+      "AI Search Failed"
+    );
+  }
 }
 
-/* ========================= EXTRACT PDF TEXT ========================= */
 async function extractPDFText(file) {
 
     const arrayBuffer =
