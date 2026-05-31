@@ -286,69 +286,77 @@ async function extractPDFText(file) {
 }
 
 async function indexAI(
-    fileUrl,
-    fileName
+  fileUrl,
+  fileName
 ) {
 
-    try {
+  try {
 
-        const response =
-            await fetch(fileUrl);
+    const response =
+      await fetch(fileUrl);
 
-        const blob =
-            await response.blob();
+    const blob =
+      await response.blob();
 
-        const file =
-            new File(
-                [blob],
-                fileName,
-                {
-                    type:
-                    "application/pdf"
-                }
-            );
+    const file =
+      new File(
+        [blob],
+        fileName,
+        {
+          type:
+          "application/pdf"
+        }
+      );
 
-        const text =
-            await extractPDFText(file);
+    const text =
+      await extractPDFText(
+        file
+      );
 
-        console.log(text);
+    const token =
+      localStorage.getItem(
+        "sessionToken"
+      );
 
-        const save =
-            await fetch(
-                "/api/ai-index",
-                {
-                    method:
-                        "POST",
+    const res =
+      await fetch(
+        "https://backend.shinumaths989.workers.dev/ai-index",
+        {
+          method: "POST",
 
-                    headers: {
-                        "Content-Type":
-                        "application/json"
-                    },
+          headers: {
+            "Content-Type":
+            "application/json",
 
-                    body:
-                    JSON.stringify({
-                        fileName,
-                        chunkText:
-                        text
-                    })
-                }
-            );
+            "Authorization":
+            `Bearer ${token}`
+          },
 
-        const result =
-            await save.json();
+          body:
+          JSON.stringify({
+            fileName,
+            chunkText:
+            text
+          })
+        }
+      );
 
-        alert(
-            result.message
-        );
+    const data =
+      await res.json();
 
-    } catch (err) {
+    alert(
+      data.message ||
+      data.error
+    );
 
-        console.error(err);
+  } catch (err) {
 
-        alert(
-            "AI Index Failed"
-        );
-    }
+    console.error(err);
+
+    alert(
+      "AI Index Failed"
+    );
+  }
 }
 
 /* ========================= STEP 1 ========================= */
