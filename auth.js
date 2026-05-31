@@ -250,6 +250,18 @@ function updateClock(){
 
 }
 
+async function searchAI() {
+
+  const query =
+    document.getElementById(
+      "aiSearch"
+    ).value;
+
+  const queryEmbedding =
+    await getEmbedding(query);
+
+}
+
 /* ========================= EXTRACT PDF TEXT ========================= */
 async function extractPDFText(file) {
 
