@@ -276,7 +276,7 @@ async function searchAI() {
 
     const res =
       await fetch(
-        "https://YOUR-BACKEND-DOMAIN/ai-search",
+        "https://backend.shinumaths989.workers.dev/ai-search",
         {
           method: "POST",
 
