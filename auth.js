@@ -292,11 +292,49 @@ async function searchAI() {
         .getElementById(
             "unified-search"
         )
-        .value;
+        .value
+        .toLowerCase();
+
+    const snapshot =
+        await getDocs(
+            collection(
+                db,
+                "ai_documents"
+            )
+        );
+
+    const results = [];
+
+    snapshot.forEach(doc => {
+
+        const data =
+            doc.data();
+
+        if (
+            data.chunkText
+            .toLowerCase()
+            .includes(query)
+        ) {
+
+            results.push(data);
+        }
+    });
+
+    console.log(results);
+
+    if (results.length === 0) {
+
+        alert(
+          "No AI results found"
+        );
+
+        return;
+    }
 
     alert(
-      "AI Search for: " +
-      query
+      "Found " +
+      results.length +
+      " result(s)"
     );
 }
 
