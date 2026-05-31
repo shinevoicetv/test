@@ -285,57 +285,70 @@ async function extractPDFText(file) {
     return text;
 }
 
-async function searchAI() {
+async function indexAI(
+    fileUrl,
+    fileName
+) {
 
-    const query =
-        document
-        .getElementById(
-            "unified-search"
-        )
-        .value
-        .toLowerCase();
+    try {
 
-    const snapshot =
-        await getDocs(
-            collection(
-                db,
-                "ai_documents"
-            )
-        );
+        const response =
+            await fetch(fileUrl);
 
-    const results = [];
+        const blob =
+            await response.blob();
 
-    snapshot.forEach(doc => {
+        const file =
+            new File(
+                [blob],
+                fileName,
+                {
+                    type:
+                    "application/pdf"
+                }
+            );
 
-        const data =
-            doc.data();
+        const text =
+            await extractPDFText(file);
 
-        if (
-            data.chunkText
-            .toLowerCase()
-            .includes(query)
-        ) {
+        console.log(text);
 
-            results.push(data);
-        }
-    });
+        const save =
+            await fetch(
+                "/api/ai-index",
+                {
+                    method:
+                        "POST",
 
-    console.log(results);
+                    headers: {
+                        "Content-Type":
+                        "application/json"
+                    },
 
-    if (results.length === 0) {
+                    body:
+                    JSON.stringify({
+                        fileName,
+                        chunkText:
+                        text
+                    })
+                }
+            );
+
+        const result =
+            await save.json();
 
         alert(
-          "No AI results found"
+            result.message
         );
 
-        return;
-    }
+    } catch (err) {
 
-    alert(
-      "Found " +
-      results.length +
-      " result(s)"
-    );
+        console.error(err);
+
+        alert(
+            "AI Index Failed"
+        );
+    }
 }
 
 /* ========================= STEP 1 ========================= */
