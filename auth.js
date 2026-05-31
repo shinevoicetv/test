@@ -288,10 +288,9 @@ async function searchAI() {
             `Bearer ${token}`
           },
 
-          body:
-          JSON.stringify({
-            query
-          })
+          body: JSON.stringify({
+  question: query
+})
         }
       );
 
