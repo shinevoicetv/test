@@ -396,11 +396,38 @@ style="display:none;">
 
             <h2 id="cat-title">Vault Ready To Use</h2>
             <br>
+<div style="
+display:flex;
+gap:10px;
+margin-bottom:20px;
+flex-wrap:wrap;
+">
+
 <input
 type="text"
 id="unified-search"
 placeholder="Search files..."
-oninput="unifiedSearch()">
+oninput="unifiedSearch()"
+style="
+flex:1;
+min-width:220px;
+">
+
+<button
+onclick="searchAI()"
+style="
+padding:12px 18px;
+border:none;
+border-radius:12px;
+background:#2563eb;
+color:white;
+font-weight:700;
+cursor:pointer;
+">
+🧠 AI Search
+</button>
+
+</div>
 
 <!-- PINNED DOCS SECTION -->
 <div id="pinned-section" class="pinned-section" style="display:none;">
