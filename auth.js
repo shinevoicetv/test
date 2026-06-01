@@ -434,6 +434,111 @@ async function indexAI(
   }
 }
 
+/* ===== GEMINI AI CHAT ===== */
+
+let aiChatHistory = [];
+
+function openAIChat() {
+  document.getElementById('ai-chat-overlay').classList.add('open');
+  aiChatHistory = []; // fresh session each open
+  setTimeout(() => document.getElementById('ai-input').focus(), 450);
+}
+
+function closeAIChat() {
+  document.getElementById('ai-chat-overlay').classList.remove('open');
+}
+
+function chipAsk(q) {
+  document.getElementById('ai-input').value = q;
+  sendAIMessage();
+}
+
+async function sendAIMessage() {
+  const input = document.getElementById('ai-input');
+  const question = input.value.trim();
+  if (!question) return;
+  input.value = '';
+
+  // Hide welcome screen on first message
+  const welcome = document.getElementById('ai-welcome');
+  if (welcome) welcome.remove();
+
+  appendUserBubble(question);
+  aiChatHistory.push({ role: 'user', parts: [{ text: question }] });
+
+  showAITyping(true);
+
+  try {
+    const token = sessionStorage.getItem('vaultSessionToken') ||
+                  sessionStorage.getItem('vaultSession') ||
+                  localStorage.getItem('sessionToken') || '';
+
+    const res = await fetch('https://backend.shinumaths989.workers.dev/ai-search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ question })
+    });
+
+    const data = await res.json();
+
+    showAITyping(false);
+
+    // Build a readable reply from whatever your Worker returns
+    let reply = '';
+    if (data.answer) {
+      reply = data.answer;
+    } else if (data.results && data.results.length > 0) {
+      reply = '📄 Found in: **' + data.results.map(x => x.fileName).join(', ') + '**';
+      if (data.results[0].snippet) reply += '\n\n' + data.results[0].snippet;
+    } else if (data.message) {
+      reply = data.message;
+    } else if (data.error) {
+      reply = '⚠️ ' + data.error;
+    } else {
+      reply = 'No matching information found in your vault documents.';
+    }
+
+    appendAIBubble(reply);
+    aiChatHistory.push({ role: 'model', parts: [{ text: reply }] });
+
+  } catch (err) {
+    showAITyping(false);
+    appendAIBubble('⚠️ Could not reach Vault AI. Please check your connection and try again.');
+    console.error('AI Chat error:', err);
+  }
+}
+
+function appendUserBubble(text) {
+  const msgs = document.getElementById('ai-messages');
+  const div = document.createElement('div');
+  div.className = 'ai-msg-user';
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function appendAIBubble(text) {
+  const msgs = document.getElementById('ai-messages');
+  const wrap = document.createElement('div');
+  wrap.className = 'ai-msg-ai-wrap';
+  wrap.innerHTML = `
+    <div class="ai-gem-avatar">✦</div>
+    <div class="ai-msg-ai">${text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}</div>
+  `;
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showAITyping(show) {
+  document.getElementById('ai-typing').style.display = show ? 'block' : 'none';
+  document.getElementById('ai-send-btn').disabled = show;
+  const msgs = document.getElementById('ai-messages');
+  msgs.scrollTop = msgs.scrollHeight;
+         }
+
 /* ========================= STEP 1 ========================= */
 async function hashPassword(password) {
   const normalized = password
