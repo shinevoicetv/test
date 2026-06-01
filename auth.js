@@ -365,6 +365,11 @@ async function extractPDFText(file) {
 /* ===== AI INDEXING ON LOGIN ===== */
 
 async function runAIIndexingOnLogin() {
+
+   console.log(
+  "runAIIndexingOnLogin() CALLED"
+);
+   
   const token = sessionStorage.getItem('vaultSessionToken') ||
                 sessionStorage.getItem('vaultSession') || '';
 
@@ -1101,11 +1106,32 @@ dash.classList.add(
 });
 
             initVault().then(() => {
+
+    console.log(
+      "INIT VAULT DONE"
+    );
+
     vaultPostInit();
-    runAIIndexingOnLogin(); // ← runs silently in background
+
+    console.log(
+      "STARTING AI INDEXING"
+    );
+
+    runAIIndexingOnLogin();
+
 }).catch(err => {
-    console.error("initVault failed:", err);
+
+    console.error(
+      "initVault failed:",
+      err
+    );
+
     vaultPostInit();
+
+    console.log(
+      "STARTING AI INDEXING FROM CATCH"
+    );
+
     runAIIndexingOnLogin();
 });
 
