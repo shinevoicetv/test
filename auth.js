@@ -435,11 +435,33 @@ console.log(
 
   const files = [];
    console.log("ALL FILE DATA:", window.allFilesData);
+   console.log(
+  "FIRST FILE SAMPLE:",
+  Object.values(window.allFilesData)[0]?.[0]
+);
   try {
     for (const items of Object.values(window.allFilesData || {})) {
       if (Array.isArray(items)) {
         for (const f of items) {
-          if (f.url && f.name) files.push({ url: f.url, name: f.name });
+          const url =
+  f.url ||
+  f.fileUrl ||
+  f.downloadUrl ||
+  f.path;
+
+const name =
+  f.name ||
+  f.fileName ||
+  f.filename;
+
+if (url && name) {
+
+  files.push({
+    url,
+    name
+  });
+
+}
         }
       }
     }
