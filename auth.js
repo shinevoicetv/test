@@ -436,6 +436,148 @@ async function indexAI(
 
 /* ===== GEMINI AI CHAT ===== */
 
+/* ===== AI INDEXING ON LOGIN ===== */
+
+async function runAIIndexingOnLogin() {
+  const token = sessionStorage.getItem('vaultSessionToken') ||
+                sessionStorage.getItem('vaultSession') || '';
+
+  // Check if already indexed
+  try {
+    const checkRes = await fetch(
+      'https://backend.shinumaths989.workers.dev/ai-index-status',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+    const checkData = await checkRes.json();
+    if (checkData.indexed) {
+      console.log('✦ Vault AI: Already indexed. Fast answers ready.');
+      updateAIBtn('ready');
+      return;
+    }
+  } catch(e) {
+    console.log('✦ Index check failed, proceeding to index.', e);
+  }
+
+  console.log('✦ Vault AI: First login — scanning all documents...');
+  updateAIBtn('indexing', '✦ Indexing...');
+
+  // Wait for allFilesData to be populated
+  let waited = 0;
+  while ((!window.allFilesData || !Object.keys(window.allFilesData).length) && waited < 8000) {
+    await new Promise(r => setTimeout(r, 400));
+    waited += 400;
+  }
+
+  const files = [];
+  try {
+    for (const items of Object.values(window.allFilesData || {})) {
+      if (Array.isArray(items)) {
+        for (const f of items) {
+          if (f.url && f.name) files.push({ url: f.url, name: f.name });
+        }
+      }
+    }
+  } catch(e) { console.warn('allFilesData parse error', e); }
+
+  if (!files.length) {
+    console.log('✦ No files found to index.');
+    updateAIBtn('ready');
+    return;
+  }
+
+  let done = 0;
+  for (const file of files) {
+    try {
+      await indexAI(file.url, file.name);
+      done++;
+      updateAIBtn('indexing', `✦ ${done}/${files.length}`);
+      console.log(`✦ Indexed: ${file.name} (${done}/${files.length})`);
+    } catch(e) {
+      console.warn(`✦ Failed to index: ${file.name}`, e);
+    }
+  }
+
+  // Mark as fully indexed in Firestore
+  try {
+    await fetch(
+      'https://backend.shinumaths989.workers.dev/ai-index-status',
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ indexed: true })
+      }
+    );
+  } catch(e) {}
+
+  updateAIBtn('ready');
+  console.log('✦ Vault AI: All documents indexed!');
+}
+
+async function indexAI(fileUrl, fileName) {
+  const token = sessionStorage.getItem('vaultSessionToken') ||
+                sessionStorage.getItem('vaultSession') ||
+                localStorage.getItem('sessionToken') || '';
+
+  // Fetch the file
+  const response = await fetch(fileUrl, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const blob = await response.blob();
+  const file = new File([blob], fileName, { type: 'application/pdf' });
+
+  // Extract full text
+  const fullText = await extractPDFText(file);
+  if (!fullText || fullText.trim().length < 20) return;
+
+  // Split into ~800 char chunks so Firestore stays clean
+  const CHUNK_SIZE = 800;
+  const chunks = [];
+  for (let i = 0; i < fullText.length; i += CHUNK_SIZE) {
+    chunks.push(fullText.slice(i, i + CHUNK_SIZE));
+  }
+
+  // Send each chunk to Firestore via Worker
+  for (let i = 0; i < chunks.length; i++) {
+    await fetch(
+      'https://backend.shinumaths989.workers.dev/ai-index',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          fileName: `${fileName} (chunk ${i + 1}/${chunks.length})`,
+          chunkText: chunks[i]
+        })
+      }
+    );
+  }
+}
+
+function updateAIBtn(state, label) {
+  const btn = document.getElementById('ai-chat-btn');
+  if (!btn) return;
+  if (state === 'ready') {
+    btn.textContent = '✦ AI';
+    btn.style.background = 'linear-gradient(135deg,#4285f4,#9b5de5,#f72585)';
+    btn.style.animation = 'none';
+  } else {
+    btn.textContent = label || '✦ AI';
+    btn.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
+    btn.style.animation = 'aiPulse 1.5s infinite';
+  }
+}
+
 let aiChatHistory = [];
 
 function openAIChat() {
