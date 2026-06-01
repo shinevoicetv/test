@@ -682,18 +682,20 @@ async function sendAIMessage() {
 
     // Build a readable reply from whatever your Worker returns
     let reply = '';
-    if (data.answer) {
-      reply = data.answer;
-    } else if (data.results && data.results.length > 0) {
-      reply = '📄 Found in: **' + data.results.map(x => x.fileName).join(', ') + '**';
-      if (data.results[0].snippet) reply += '\n\n' + data.results[0].snippet;
-    } else if (data.message) {
-      reply = data.message;
-    } else if (data.error) {
-      reply = '⚠️ ' + data.error;
-    } else {
-      reply = 'No matching information found in your vault documents.';
-    }
+    if (data.reply) {
+  reply = data.reply;
+} else if (data.answer) {
+  reply = data.answer;
+} else if (data.results && data.results.length > 0) {
+  reply = '📄 Found in: **' + data.results.map(x => x.fileName).join(', ') + '**';
+  if (data.results[0].snippet) reply += '\n\n' + data.results[0].snippet;
+} else if (data.message) {
+  reply = data.message;
+} else if (data.error) {
+  reply = '⚠️ ' + data.error;
+} else {
+  reply = 'No matching information found in your vault documents.';
+}
 
     appendAIBubble(reply);
     aiChatHistory.push({ role: 'model', parts: [{ text: reply }] });
