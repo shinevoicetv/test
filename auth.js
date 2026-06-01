@@ -515,41 +515,71 @@ console.log(
   console.log('✦ Vault AI: All documents indexed!');
 }
 
-async function indexAI(fileUrl, fileName) {
-  const token =
-    sessionStorage.getItem(
-      "vaultSessionToken"
-    ) ||
-    sessionStorage.getItem(
-      "vaultSession"
-    );
+async function decryptVaultFile(arrayBuffer) {
+  // Read settings length (first 4 bytes)
+  const settingsLength = new Uint32Array(arrayBuffer.slice(0, 4))[0];
 
-const response =
-  await fetch(
-  `https://backend.shinumaths989.workers.dev/file/${fileUrl}`,
+  // Read settings JSON
+  const settingsBytes = arrayBuffer.slice(4, 4 + settingsLength);
+  const settings = JSON.parse(new TextDecoder().decode(settingsBytes));
+
+  // Read salt (16 bytes) and IV (12 bytes)
+  const saltStart = 4 + settingsLength;
+  const salt = arrayBuffer.slice(saltStart, saltStart + 16);
+  const ivStart = saltStart + 16;
+  const iv = arrayBuffer.slice(ivStart, ivStart + 12);
+  const encryptedData = arrayBuffer.slice(ivStart + 12);
+
+  // Hash master password (same as sha256Bytes used in the viewer)
+  const passwordHash = await sha256Bytes(window.masterPassword);
+
+  // Import key material
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw", passwordHash, "PBKDF2", false, ["deriveKey"]
+  );
+
+  // Derive AES-GCM key
+  const key = await crypto.subtle.deriveKey(
     {
-      headers: {
-        Authorization:
-        `Bearer ${token}`
-      }
-    }
-  );
-  if (!response.ok) {
-
-  console.error(
-    "FILE FETCH FAILED:",
-    fileName,
-    await response.text()
+      name: "PBKDF2",
+      salt: new Uint8Array(salt),
+      iterations: settings.iterations,
+      hash: settings.hash
+    },
+    keyMaterial,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"]
   );
 
-  return;
+  // Decrypt and return
+  return await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: new Uint8Array(iv) },
+    key,
+    encryptedData
+  );
 }
 
-const blob =
-  await response.blob();
-  const file = new File([blob], fileName, { type: 'application/pdf' });
+async function indexAI(fileUrl, fileName) {
+  const token = sessionStorage.getItem('vaultSessionToken') ||
+                sessionStorage.getItem('vaultSession') ||
+                localStorage.getItem('sessionToken') || '';
 
-  // Extract full text
+  const response = await fetch(fileUrl, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const encryptedBuffer = await response.arrayBuffer();
+
+  // ✅ Decrypt before passing to pdfjs
+  let decryptedBuffer;
+  try {
+    decryptedBuffer = await decryptVaultFile(encryptedBuffer);
+  } catch (e) {
+    console.warn(`✦ Could not decrypt "${fileName}" — skipping.`, e);
+    return;
+  }
+
+  const file = new File([decryptedBuffer], fileName, { type: 'application/pdf' });
   const fullText = await extractPDFText(file);
   if (!fullText || fullText.trim().length < 20) return;
 
