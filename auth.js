@@ -484,10 +484,8 @@ console.log(
       "INDEXING:",
       file.name
     );
-      await indexAI(
-  file.file,
-  file.name
-);
+      await indexAI('https://backend.shinumaths989.workers.dev/docs/' + file.file, file.name);
+
       done++;
       updateAIBtn('indexing', `✦ ${done}/${files.length}`);
       console.log(`✦ Indexed: ${file.name} (${done}/${files.length})`);
