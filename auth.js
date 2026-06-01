@@ -1134,11 +1134,13 @@ dash.classList.add(
 });
 
             initVault().then(() => {
-                vaultPostInit();
-            }).catch(err => {
-                console.error("initVault failed:", err);
-                vaultPostInit(); // still run post-init even on error
-            });
+    vaultPostInit();
+    runAIIndexingOnLogin(); // ← runs silently in background
+}).catch(err => {
+    console.error("initVault failed:", err);
+    vaultPostInit();
+    runAIIndexingOnLogin();
+});
 
             startSessionTimer();
 
