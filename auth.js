@@ -386,11 +386,17 @@ async function runAIIndexingOnLogin() {
       }
     );
     const checkData = await checkRes.json();
-    if (checkData.indexed) {
-      console.log('✦ Vault AI: Already indexed. Fast answers ready.');
-      updateAIBtn('ready');
-      return;
-    }
+    if (false && checkData.indexed) {
+  console.log(
+    '✦ Vault AI: Already indexed. Fast answers ready.'
+  );
+
+  updateAIBtn('ready');
+  return;
+}
+     console.log(
+  "FORCING RE-INDEX"
+);
   } catch(e) {
     console.log('✦ Index check failed, proceeding to index.', e);
   }
