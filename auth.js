@@ -526,7 +526,7 @@ async function indexAI(fileUrl, fileName) {
 
 const response =
   await fetch(
-    `${BACKEND_URL}/file/${fileUrl}`,
+  `https://backend.shinumaths989.workers.dev/file/${fileUrl}`,
     {
       headers: {
         Authorization:
@@ -534,7 +534,19 @@ const response =
       }
     }
   );
-  const blob = await response.blob();
+  if (!response.ok) {
+
+  console.error(
+    "FILE FETCH FAILED:",
+    fileName,
+    await response.text()
+  );
+
+  return;
+}
+
+const blob =
+  await response.blob();
   const file = new File([blob], fileName, { type: 'application/pdf' });
 
   // Extract full text
