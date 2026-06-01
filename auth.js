@@ -463,6 +463,7 @@ console.log(
   }
 } 
       }
+    }
   } catch(e) { console.warn('allFilesData parse error', e); }
 
    console.log(
@@ -515,18 +516,13 @@ console.log(
 }
 
 async function indexAI(fileUrl, fileName) {
-  const token = sessionStorage.getItem('vaultSessionToken') ||
-                sessionStorage.getItem('vaultSession') ||
-                localStorage.getItem('sessionToken') || '';
-
-  // Fetch the file
   const token =
-  sessionStorage.getItem(
-    "vaultSessionToken"
-  ) ||
-  sessionStorage.getItem(
-    "vaultSession"
-  );
+    sessionStorage.getItem(
+      "vaultSessionToken"
+    ) ||
+    sessionStorage.getItem(
+      "vaultSession"
+    );
 
 const response =
   await fetch(
