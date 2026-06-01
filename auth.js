@@ -443,28 +443,26 @@ console.log(
     for (const items of Object.values(window.allFilesData || {})) {
       if (Array.isArray(items)) {
         for (const f of items) {
-          const url =
-  f.url ||
-  f.fileUrl ||
-  f.downloadUrl ||
-  f.path;
 
-const name =
-  f.name ||
-  f.fileName ||
-  f.filename;
+  const file =
+    f.file;
 
-if (url && name) {
+  const name =
+    f.name ||
+    f.fileName ||
+    f.filename ||
+    "Unnamed File";
 
-  files.push({
-    url,
-    name
-  });
+  if (file && name) {
 
-}
-        }
+    files.push({
+      file,
+      name
+    });
+
+  }
+} 
       }
-    }
   } catch(e) { console.warn('allFilesData parse error', e); }
 
    console.log(
@@ -485,7 +483,10 @@ if (url && name) {
       "INDEXING:",
       file.name
     );
-      await indexAI(file.url, file.name);
+      await indexAI(
+  file.file,
+  file.name
+);
       done++;
       updateAIBtn('indexing', `✦ ${done}/${files.length}`);
       console.log(`✦ Indexed: ${file.name} (${done}/${files.length})`);
@@ -519,9 +520,24 @@ async function indexAI(fileUrl, fileName) {
                 localStorage.getItem('sessionToken') || '';
 
   // Fetch the file
-  const response = await fetch(fileUrl, {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
+  const token =
+  sessionStorage.getItem(
+    "vaultSessionToken"
+  ) ||
+  sessionStorage.getItem(
+    "vaultSession"
+  );
+
+const response =
+  await fetch(
+    `${BACKEND_URL}/file/${fileUrl}`,
+    {
+      headers: {
+        Authorization:
+        `Bearer ${token}`
+      }
+    }
+  );
   const blob = await response.blob();
   const file = new File([blob], fileName, { type: 'application/pdf' });
 
