@@ -15,7 +15,7 @@ let currentDecryptedPdf = null;
 let sessionStartTime = null;
 
    let sessionId = crypto.randomUUID();
-let allFilesData = {};
+window.allFilesData = {};
 let currentCategory = "";
    
    async function sha256Bytes(text){
@@ -360,80 +360,6 @@ async function extractPDFText(file) {
     return text;
 }
 
-async function indexAI(
-  fileUrl,
-  fileName
-) {
-
-  try {
-
-    const response =
-      await fetch(fileUrl);
-
-    const blob =
-      await response.blob();
-
-    const file =
-      new File(
-        [blob],
-        fileName,
-        {
-          type:
-          "application/pdf"
-        }
-      );
-
-    const text =
-      await extractPDFText(
-        file
-      );
-
-    const token =
-      localStorage.getItem(
-        "sessionToken"
-      );
-
-    const res =
-      await fetch(
-        "https://backend.shinumaths989.workers.dev/ai-index",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-            "application/json",
-
-            "Authorization":
-            `Bearer ${token}`
-          },
-
-          body:
-          JSON.stringify({
-            fileName,
-            chunkText:
-            text
-          })
-        }
-      );
-
-    const data =
-      await res.json();
-
-    alert(
-      data.message ||
-      data.error
-    );
-
-  } catch (err) {
-
-    console.error(err);
-
-    alert(
-      "AI Index Failed"
-    );
-  }
-}
-
 /* ===== GEMINI AI CHAT ===== */
 
 /* ===== AI INDEXING ON LOGIN ===== */
@@ -469,12 +395,35 @@ async function runAIIndexingOnLogin() {
 
   // Wait for allFilesData to be populated
   let waited = 0;
-  while ((!window.allFilesData || !Object.keys(window.allFilesData).length) && waited < 8000) {
-    await new Promise(r => setTimeout(r, 400));
-    waited += 400;
-  }
+
+while (
+  (
+    !window.allFilesData ||
+    !Object.keys(window.allFilesData).length
+  ) &&
+  waited < 30000
+) {
+
+  console.log(
+    "Waiting for files...",
+    waited,
+    window.allFilesData
+  );
+
+  await new Promise(
+    r => setTimeout(r, 500)
+  );
+
+  waited += 500;
+}
+
+console.log(
+  "Files ready:",
+  window.allFilesData
+);
 
   const files = [];
+   console.log("ALL FILE DATA:", window.allFilesData);
   try {
     for (const items of Object.values(window.allFilesData || {})) {
       if (Array.isArray(items)) {
@@ -485,6 +434,11 @@ async function runAIIndexingOnLogin() {
     }
   } catch(e) { console.warn('allFilesData parse error', e); }
 
+   console.log(
+  "FILES FOUND:",
+  files
+);
+
   if (!files.length) {
     console.log('✦ No files found to index.');
     updateAIBtn('ready');
@@ -494,6 +448,10 @@ async function runAIIndexingOnLogin() {
   let done = 0;
   for (const file of files) {
     try {
+       console.log(
+      "INDEXING:",
+      file.name
+    );
       await indexAI(file.url, file.name);
       done++;
       updateAIBtn('indexing', `✦ ${done}/${files.length}`);
@@ -547,9 +505,15 @@ async function indexAI(fileUrl, fileName) {
 
   // Send each chunk to Firestore via Worker
   for (let i = 0; i < chunks.length; i++) {
-    await fetch(
-      'https://backend.shinumaths989.workers.dev/ai-index',
-      {
+
+     console.log(
+  "CALLING /ai-index"
+);
+     
+    const response =
+await fetch(
+  'https://backend.shinumaths989.workers.dev/ai-index',
+  {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -561,6 +525,9 @@ async function indexAI(fileUrl, fileName) {
         })
       }
     );
+     console.log(
+  await response.text()
+);
   }
 }
 
