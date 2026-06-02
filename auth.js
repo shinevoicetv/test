@@ -477,23 +477,120 @@ console.log(
     return;
   }
 
-  let done = 0;
-  for (const file of files) {
-    try {
-       console.log(
-      "INDEXING:",
+  // STEP 1: Get already indexed files
+let indexedFiles = [];
+
+try {
+
+  const progressRes =
+    await fetch(
+      'https://backend.shinumaths989.workers.dev/ai-index-progress',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type':
+          'application/json',
+
+          'Authorization':
+          `Bearer ${token}`
+        }
+      }
+    );
+
+  const progressData =
+    await progressRes.json();
+
+  indexedFiles =
+    progressData.files || [];
+
+} catch(e){
+
+  console.warn(
+    'Could not load progress',
+    e
+  );
+}
+
+// Convert to fast lookup
+const indexedSet =
+  new Set(indexedFiles);
+
+console.log(
+  `AI Index: ${
+    indexedSet.size
+  } file(s) already fully indexed in Firestore.`
+);
+
+let done = indexedSet.size;
+
+// STEP 2: Resume indexing
+for (const file of files) {
+
+  try {
+
+    // Skip completed file
+    if (
+      indexedSet.has(
+        file.name
+      )
+    ) {
+
+      console.log(
+        `✦ Skipping: ${file.name}`
+      );
+
+      continue;
+    }
+
+    console.log(
+      `✦ Resuming: ${file.name}`
+    );
+
+    await indexAI(
+      file.url,
       file.name
     );
-      await indexAI('https://backend.shinumaths989.workers.dev/docs/' + file.file, file.name);
 
-      done++;
-      updateAIBtn('indexing', `✦ ${done}/${files.length}`);
-      console.log(`✦ Indexed: ${file.name} (${done}/${files.length})`);
-    } catch(e) {
-      console.warn(`✦ Failed to index: ${file.name}`, e);
-    }
+    done++;
+
+    updateAIBtn(
+      'indexing',
+      `✦ ${done}/${files.length}`
+    );
+
+    console.log(
+      `✦ Indexed: ${file.name}`
+    );
+
+    // Save progress immediately
+    await fetch(
+      'https://backend.shinumaths989.workers.dev/ai-file-indexed',
+      {
+        method:'POST',
+
+        headers:{
+          'Content-Type':
+          'application/json',
+
+          'Authorization':
+          `Bearer ${token}`
+        },
+
+        body: JSON.stringify({
+          fileName:
+          file.name
+        })
+      }
+    );
+
+  } catch(e) {
+
+    console.warn(
+      `✦ Failed: ${file.name}`,
+      e
+    );
   }
-
+}
   // Mark as fully indexed in Firestore
   try {
     await fetch(
