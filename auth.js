@@ -677,27 +677,34 @@ async function indexAI(fileUrl, fileName) {
                 sessionStorage.getItem('vaultSession') ||
                 localStorage.getItem('sessionToken') || '';
 
-   try {
-    const checkRes = await fetch('https://backend.shinumaths989.workers.dev/ai-chunk-status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ fileName })
-    });
+  // ── Check if this file's chunks already exist ──
+  try {
+    const checkRes = await fetch(
+      'https://backend.shinumaths989.workers.dev/ai-chunk-status',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ fileName })  // checks by baseFileName
+      }
+    );
     const checkData = await checkRes.json();
     if (checkData.exists) {
-      console.log(`✦ "${fileName}" already chunked in Firestore — skipping.`);
-      return; // ← skip OCR + re-upload entirely
+      console.log(`✦ "${fileName}" already in Firestore — skipping.`);
+      return;
     }
   } catch (e) {
     console.warn('Chunk status check failed, will re-index:', e);
-   }
-   
+  }
+
+  // ── Fetch and decrypt the file ─────────────────
   const response = await fetch(fileUrl, {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   const encryptedBuffer = await response.arrayBuffer();
 
-  // ✅ Decrypt before passing to pdfjs
   let decryptedBuffer;
   try {
     decryptedBuffer = await decryptVaultFile(encryptedBuffer);
@@ -706,43 +713,80 @@ async function indexAI(fileUrl, fileName) {
     return;
   }
 
+  // ── Extract text ───────────────────────────────
   const file = new File([decryptedBuffer], fileName, { type: 'application/pdf' });
   const fullText = await extractPDFText(file);
-  if (!fullText || fullText.trim().length < 20) return;
 
-  // Split into ~800 char chunks so Firestore stays clean
-  const CHUNK_SIZE = 800;
-  const chunks = [];
-  for (let i = 0; i < fullText.length; i += CHUNK_SIZE) {
-    chunks.push(fullText.slice(i, i + CHUNK_SIZE));
+  if (!fullText || fullText.trim().length < 20) {
+    console.warn(`✦ No text extracted from "${fileName}" — may be a scanned image.`);
+    // Still save a placeholder so AI knows the file exists
+    await fetch('https://backend.shinumaths989.workers.dev/ai-index', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        fileName:     `${fileName} (chunk 1/1)`,
+        baseFileName: fileName,               // ← key field
+        chunkText:    `Document: ${fileName}\nNote: This document appears to be a scanned image. Text could not be extracted automatically. Please check this document manually.`,
+        chunkIndex:   0,
+        totalChunks:  1
+      })
+    });
+    return;
   }
 
-  // Send each chunk to Firestore via Worker
+  // ── Split into chunks WITH overlap ────────────
+  const CHUNK_SIZE    = 600;   // smaller = more precise
+  const CHUNK_OVERLAP = 150;   // overlap keeps dates/names from being cut
+  const chunks        = [];
+  let start           = 0;
+
+  while (start < fullText.length) {
+    const end   = Math.min(start + CHUNK_SIZE, fullText.length);
+    const chunk = fullText.slice(start, end).trim();
+
+    if (chunk.length > 30) {        // skip near-empty chunks
+      chunks.push(chunk);
+    }
+
+    if (end === fullText.length) break;
+    start += CHUNK_SIZE - CHUNK_OVERLAP;
+  }
+
+  console.log(`✦ "${fileName}" → ${chunks.length} chunks to index`);
+
+  // ── Send each chunk to backend ─────────────────
   for (let i = 0; i < chunks.length; i++) {
+    try {
+      const res = await fetch(
+        'https://backend.shinumaths989.workers.dev/ai-index',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            fileName:     `${fileName} (chunk ${i + 1}/${chunks.length})`,
+            baseFileName: fileName,       // ← used for chunk-status checks
+            chunkText:    chunks[i],
+            chunkIndex:   i,              // ← used for ordering
+            totalChunks:  chunks.length   // ← used for progress
+          })
+        }
+      );
 
-     console.log(
-  "CALLING /ai-index"
-);
-     
-    const response =
-await fetch(
-  'https://backend.shinumaths989.workers.dev/ai-index',
-  {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          fileName: `${fileName} (chunk ${i + 1}/${chunks.length})`,
-          chunkText: chunks[i]
-        })
-      }
-    );
-     console.log(
-  await response.text()
-);
+      const data = await res.json();
+      console.log(`✦ chunk ${i + 1}/${chunks.length} → ${data.success ? '✅' : '❌ ' + data.error}`);
+
+    } catch (e) {
+      console.warn(`✦ chunk ${i + 1} failed:`, e);
+    }
   }
+
+  console.log(`✦ "${fileName}" fully indexed (${chunks.length} chunks).`);
 }
 
 function updateAIBtn(state, label) {
