@@ -327,38 +327,38 @@ async function searchAI() {
 }
 
 async function extractPDFText(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-    const arrayBuffer =
-        await file.arrayBuffer();
+  let fullText = "";
 
-    const pdf =
-        await pdfjsLib
-        .getDocument({
-            data: arrayBuffer
-        }).promise;
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
 
-    let text = "";
+    // 1. Try native text layer first (fast, works for digital PDFs)
+    const content = await page.getTextContent();
+    const layerText = content.items.map(item => item.str).join(" ").trim();
 
-    for (
-        let i = 1;
-        i <= pdf.numPages;
-        i++
-    ) {
+    if (layerText.length > 30) {
+      // Page has real text — use it
+      fullText += layerText + "\n";
+    } else {
+      // Page is scanned — render to canvas and OCR with Tesseract
+      const viewport = page.getViewport({ scale: 2.0 }); // scale 2 = better OCR accuracy
+      const canvas = document.createElement("canvas");
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const ctx = canvas.getContext("2d");
+      await page.render({ canvasContext: ctx, viewport }).promise;
 
-        const page =
-            await pdf.getPage(i);
-
-        const content =
-            await page.getTextContent();
-
-        text +=
-            content.items
-            .map(item => item.str)
-            .join(" ");
+      // Tesseract.js must be loaded: <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+      const { data: { text } } = await Tesseract.recognize(canvas, "eng");
+      fullText += text + "\n";
     }
+  }
 
-    return text;
-}
+  return fullText;
+       }
 
 /* ===== GEMINI AI CHAT ===== */
 
@@ -558,11 +558,43 @@ async function decryptVaultFile(arrayBuffer) {
   );
 }
 
+// After successfully deleting the file from storage, also remove its chunks:
+async function deleteFileChunks(fileName) {
+  const token = sessionStorage.getItem('vaultSessionToken') ||
+                sessionStorage.getItem('vaultSession') ||
+                localStorage.getItem('sessionToken') || '';
+  try {
+    await fetch('https://backend.shinumaths989.workers.dev/ai-chunk-delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ fileName })
+    });
+    console.log(`✦ Chunks deleted for: ${fileName}`);
+  } catch (e) {
+    console.warn('Failed to delete chunks:', e);
+  }
+       }
+
 async function indexAI(fileUrl, fileName) {
   const token = sessionStorage.getItem('vaultSessionToken') ||
                 sessionStorage.getItem('vaultSession') ||
                 localStorage.getItem('sessionToken') || '';
 
+   try {
+    const checkRes = await fetch('https://backend.shinumaths989.workers.dev/ai-chunk-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ fileName })
+    });
+    const checkData = await checkRes.json();
+    if (checkData.exists) {
+      console.log(`✦ "${fileName}" already chunked in Firestore — skipping.`);
+      return; // ← skip OCR + re-upload entirely
+    }
+  } catch (e) {
+    console.warn('Chunk status check failed, will re-index:', e);
+   }
+   
   const response = await fetch(fileUrl, {
     headers: { 'Authorization': `Bearer ${token}` }
   });
