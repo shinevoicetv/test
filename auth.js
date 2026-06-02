@@ -1506,3 +1506,179 @@ dash.classList.add(
     }, 15000);
 
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+//  AI INDEXING — Full PDF → chunks → Firestore (global, forever)
+// ═══════════════════════════════════════════════════════════════════════
+
+async function extractFullPDFText(arrayBuffer) {
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let fullText = "";
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+
+    // Try native text layer first (works for digital PDFs)
+    const content = await page.getTextContent();
+    const layerText = content.items.map(item => item.str).join(" ").trim();
+
+    if (layerText.length > 30) {
+      fullText += layerText + "\n";
+    } else {
+      // Scanned page — render canvas then OCR with Tesseract
+      // Requires in your HTML: <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+      try {
+        const viewport = page.getViewport({ scale: 2.0 });
+        const canvas = document.createElement("canvas");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+        const { data: { text } } = await Tesseract.recognize(canvas, "eng");
+        fullText += (text || "") + "\n";
+      } catch (ocrErr) {
+        console.warn(`OCR failed page ${i}:`, ocrErr);
+      }
+    }
+  }
+
+  return fullText.trim();
+}
+
+async function runAIIndexingOnLogin() {
+  const token = sessionStorage.getItem("vaultSessionToken") ||
+                sessionStorage.getItem("vaultSession") || "";
+  if (!token) return;
+
+  // ── 1. Get all files the current user can access ─────────────────────
+  let allFiles = [];
+  try {
+    const res = await fetch("https://backend.shinumaths989.workers.dev/files.json", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+    for (const items of Object.values(data)) {
+      if (Array.isArray(items)) allFiles.push(...items);
+    }
+  } catch (e) {
+    console.error("AI Index: Could not fetch file list", e);
+    return;
+  }
+
+  // Keep only PDFs / encrypted PDFs
+  const pdfFiles = allFiles.filter(f => {
+    const name = (f.file || f.name || f.fileName || "").toLowerCase();
+    return name.endsWith(".pdf") || name.endsWith(".enc");
+  });
+
+  if (!pdfFiles.length) {
+    console.log("AI Index: No PDF files found.");
+    return;
+  }
+
+  console.log(`AI Index: ${pdfFiles.length} PDF(s) found. Checking Firestore...`);
+
+  // ── 2. Ask Worker which files are already FULLY indexed ───────────────
+  let alreadyIndexed = new Set();
+  try {
+    const statusRes = await fetch(
+      "https://backend.shinumaths989.workers.dev/ai-chunk-status-all",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({})
+      }
+    );
+    const statusData = await statusRes.json();
+    (statusData.indexed || []).forEach(name => alreadyIndexed.add(name));
+    console.log(`AI Index: ${alreadyIndexed.size} file(s) already fully indexed in Firestore.`);
+  } catch (e) {
+    console.warn("AI Index: Status check failed — will attempt all files", e);
+  }
+
+  // ── 3. Index every file not yet in Firestore ──────────────────────────
+  for (const fileEntry of pdfFiles) {
+    const filePath = fileEntry.file || fileEntry.path || fileEntry.fileName || "";
+    const fileName = filePath.split("/").pop();
+
+    if (alreadyIndexed.has(fileName)) {
+      console.log(`AI Index: "${fileName}" ✓ already indexed — skip`);
+      continue;
+    }
+
+    console.log(`AI Index: Processing "${fileName}"...`);
+
+    try {
+      // Download encrypted file
+      const dlRes = await fetch(
+        `https://backend.shinumaths989.workers.dev/docs/${filePath}`,
+        { headers: { "Authorization": `Bearer ${token}` } }
+      );
+      if (!dlRes.ok) {
+        console.warn(`AI Index: Download failed for "${fileName}" (HTTP ${dlRes.status})`);
+        continue;
+      }
+
+      const encryptedBuffer = await dlRes.arrayBuffer();
+
+      // Decrypt
+      let decryptedBuffer;
+      try {
+        decryptedBuffer = await decryptVaultFile(encryptedBuffer);
+      } catch (e) {
+        console.warn(`AI Index: Decrypt failed for "${fileName}" — skip`, e);
+        continue;
+      }
+
+      // Extract full text (OCR for scanned pages)
+      const fullText = await extractFullPDFText(decryptedBuffer);
+
+      if (!fullText || fullText.length < 50) {
+        console.warn(`AI Index: "${fileName}" — no text extracted, skip`);
+        continue;
+      }
+
+      console.log(`AI Index: "${fileName}" — ${fullText.length} chars extracted`);
+
+      // Split into overlapping 800-char chunks
+      const CHUNK_SIZE = 800;
+      const OVERLAP    = 100;
+      const chunks = [];
+      for (let i = 0; i < fullText.length; i += (CHUNK_SIZE - OVERLAP)) {
+        chunks.push(fullText.slice(i, i + CHUNK_SIZE));
+        if (i + CHUNK_SIZE >= fullText.length) break;
+      }
+
+      console.log(`AI Index: "${fileName}" — uploading ${chunks.length} chunks...`);
+
+      // Upload every chunk to Worker → Firestore
+      let uploaded = 0;
+      for (let i = 0; i < chunks.length; i++) {
+        try {
+          const r = await fetch("https://backend.shinumaths989.workers.dev/ai-index", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            body: JSON.stringify({
+              fileName:     `${fileName} [chunk ${i + 1}/${chunks.length}]`,
+              baseFileName: fileName,
+              chunkText:    chunks[i],
+              chunkIndex:   i,
+              totalChunks:  chunks.length
+            })
+          });
+          if (r.ok) uploaded++;
+        } catch (e) {
+          console.warn(`AI Index: chunk ${i + 1} upload failed`, e);
+        }
+        // Throttle every 10 chunks to avoid hammering
+        if (i % 10 === 9) await new Promise(r => setTimeout(r, 300));
+      }
+
+      console.log(`AI Index: ✅ "${fileName}" — ${uploaded}/${chunks.length} chunks saved to Firestore`);
+
+    } catch (err) {
+      console.error(`AI Index: Unexpected error for "${fileName}"`, err);
+    }
+  }
+
+  console.log("AI Index: ✅ Done. All chunks globally available for all users.");
+}
