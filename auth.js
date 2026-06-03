@@ -362,6 +362,192 @@ async function extractPDFText(file) {
 
 /* ===== GEMINI AI CHAT ===== */
 
+// ════════════════════════════════════════════
+//  TOTP FRONTEND LOGIC
+// ════════════════════════════════════════════
+
+let _totpHash = null;        // holds password hash from step3
+let _totpTimerInterval = null;
+
+// ── Called from onCaptchaSuccess (your existing auth flow) ──
+// Replace your existing successful login call with this:
+// Instead of directly calling /get-secret, call startTOTPStep(hash)
+
+function startTOTPStep(hash) {
+  _totpHash = hash;
+  showStepTOTP();
+  startTOTPCountdown();
+  focusFirstDigit();
+}
+
+function showStepTOTP() {
+  document.getElementById("step1").style.display       = "none";
+  document.getElementById("step2").style.display       = "none";
+  document.getElementById("step3").style.display       = "none";
+  document.getElementById("step-totp").style.display   = "flex";
+  clearTOTPBoxes();
+  hideTOTPError();
+}
+
+function showStep1() {
+  document.getElementById("step-totp").style.display = "none";
+  document.getElementById("step1").style.display     = "flex";
+  stopTOTPCountdown();
+}
+
+// ── Digit box auto-advance + backspace ──────
+document.addEventListener("DOMContentLoaded", () => {
+  const digits = document.querySelectorAll(".totp-digit");
+
+  digits.forEach((box, i) => {
+    box.addEventListener("input", () => {
+      // only keep numbers
+      box.value = box.value.replace(/\D/g, "").slice(-1);
+      if (box.value && i < digits.length - 1) {
+        digits[i + 1].focus();
+      }
+      // auto-submit when last digit filled
+      if (i === digits.length - 1 && box.value) {
+        setTimeout(submitTOTP, 120);
+      }
+    });
+
+    box.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace" && !box.value && i > 0) {
+        digits[i - 1].focus();
+        digits[i - 1].value = "";
+      }
+    });
+
+    // allow paste of full 6-digit code
+    box.addEventListener("paste", (e) => {
+      e.preventDefault();
+      const pasted = (e.clipboardData || window.clipboardData)
+        .getData("text").replace(/\D/g, "").slice(0, 6);
+      digits.forEach((d, j) => { d.value = pasted[j] || ""; });
+      if (pasted.length === 6) setTimeout(submitTOTP, 120);
+    });
+  });
+});
+
+function focusFirstDigit() {
+  setTimeout(() => {
+    const first = document.querySelector(".totp-digit");
+    if (first) first.focus();
+  }, 200);
+}
+
+function clearTOTPBoxes() {
+  document.querySelectorAll(".totp-digit").forEach(d => {
+    d.value = "";
+    d.classList.remove("error");
+  });
+}
+
+function getTOTPCode() {
+  return [...document.querySelectorAll(".totp-digit")]
+    .map(d => d.value).join("");
+}
+
+// ── Countdown ring (30s TOTP window) ────────
+function startTOTPCountdown() {
+  stopTOTPCountdown();
+
+  function tick() {
+    const sec = 30 - (Math.floor(Date.now() / 1000) % 30);
+    const ring = document.getElementById("totp-ring");
+    const label = document.getElementById("totp-timer-label");
+    if (!ring) return;
+
+    const pct = sec / 30;
+    ring.setAttribute("stroke-dashoffset", (125.6 * (1 - pct)).toString());
+    ring.setAttribute("stroke", sec <= 5 ? "#f87171" : "var(--accent,#6ee7f7)");
+    if (label) label.textContent = sec + "s";
+  }
+
+  tick();
+  _totpTimerInterval = setInterval(tick, 1000);
+}
+
+function stopTOTPCountdown() {
+  if (_totpTimerInterval) {
+    clearInterval(_totpTimerInterval);
+    _totpTimerInterval = null;
+  }
+}
+
+// ── Show / hide error ────────────────────────
+function showTOTPError(msg) {
+  const el = document.getElementById("totp-error");
+  if (el) { el.textContent = msg; el.style.display = "block"; }
+  document.querySelectorAll(".totp-digit").forEach(d => d.classList.add("error"));
+  setTimeout(() => {
+    document.querySelectorAll(".totp-digit").forEach(d => d.classList.remove("error"));
+  }, 600);
+}
+
+function hideTOTPError() {
+  const el = document.getElementById("totp-error");
+  if (el) el.style.display = "none";
+}
+
+// ── Submit TOTP to backend ───────────────────
+async function submitTOTP() {
+  const code = getTOTPCode();
+
+  if (code.length !== 6) {
+    showTOTPError("Please enter all 6 digits.");
+    return;
+  }
+
+  hideTOTPError();
+
+  // Show loading state
+  const btn = document.querySelector("#step-totp .btn-primary");
+  if (btn) { btn.textContent = "Verifying..."; btn.disabled = true; }
+
+  try {
+    const BACKEND = window.BACKEND_URL || "https://your-worker.workers.dev"; // ← update this
+
+    const res = await fetch(`${BACKEND}/verify-totp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, hash: _totpHash })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      stopTOTPCountdown();
+
+      // ── Store session exactly as your existing auth does ──
+      // These lines mirror what your auth.js does after /get-secret
+      window._sessionToken = data.sessionToken;
+      window._vaultMode    = data.mode;
+      window._vaultSecret  = data.secret;
+
+      // Hide TOTP screen, show vault
+      document.getElementById("step-totp").style.display = "none";
+      if (typeof onAuthSuccess === "function") {
+        onAuthSuccess(data); // call your existing post-login handler if it exists
+      } else {
+        // fallback: show dashboard directly
+        document.getElementById("vault-dashboard").style.display = "block";
+        if (typeof loadVaultFiles === "function") loadVaultFiles();
+      }
+
+    } else {
+      showTOTPError(data.error || "Invalid code. Try again.");
+      clearTOTPBoxes();
+      focusFirstDigit();
+    }
+
+  } catch (err) {
+    showTOTPError("Network error. Please retry.");
+  } finally {
+    if (btn) { btn.textContent = "VERIFY CODE"; btn.disabled = false; }
+  }
+}
 /* ===== AI INDEXING ON LOGIN ===== */
 
 async function runAIIndexingOnLogin() {
