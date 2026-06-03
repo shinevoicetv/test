@@ -518,35 +518,43 @@ async function submitTOTP() {
     const data = await res.json();
 
     if (data.success) {
-      stopTOTPCountdown();
+    stopTOTPCountdown();
 
-      // ── Store session exactly as your existing auth does ──
-      // These lines mirror what your auth.js does after /get-secret
-      window._sessionToken = data.sessionToken;
-      window._vaultMode    = data.mode;
-      window._vaultSecret  = data.secret;
+    // ── Restore everything the old success block set ──
+    const result = data;           // /verify-totp returns same fields as /get-secret
+    const pass   = window._pendingAuthPass;
 
-      // Hide TOTP screen, show vault
-      document.getElementById("step-totp").style.display = "none";
-      if (typeof onAuthSuccess === "function") {
-        onAuthSuccess(data); // call your existing post-login handler if it exists
-      } else {
-        // fallback: show dashboard directly
-        document.getElementById("vault-dashboard").style.display = "block";
-        if (typeof loadVaultFiles === "function") loadVaultFiles();
-      }
+    sessionStorage.setItem("vaultSessionToken", result.sessionToken);
+    sessionStorage.setItem("vaultSession",       result.sessionToken);
 
-    } else {
-      showTOTPError(data.error || "Invalid code. Try again.");
-      clearTOTPBoxes();
-      focusFirstDigit();
+    resetInactivityTimer();
+
+    window.masterPassword = result.secret ? String(result.secret) : String(pass);
+    if (result.secret) sessionStorage.setItem("vault_session_secret", result.secret);
+
+    window.VAULT_MODE = result.mode;
+    sessionStorage.setItem("vaultMode", result.mode);
+
+    if (window.VAULT_MODE !== "ADMIN") {
+        document.getElementById("share-gear").style.display = "none";
     }
 
-  } catch (err) {
-    showTOTPError("Network error. Please retry.");
-  } finally {
-    if (btn) { btn.textContent = "VERIFY CODE"; btn.disabled = false; }
-  }
+    masterPassword = window.masterPassword;
+    sessionStartTime = new Date();
+
+    // ── Hide TOTP, show step2 (Legal Declaration) — same flow as before ──
+    document.getElementById("step-totp").style.display = "none";
+    document.getElementById("step2").style.display = "flex";
+
+    // Clean up temp storage
+    window._pendingAuthResult = null;
+    window._pendingAuthPass   = null;
+    window._pendingAuthHash   = null;
+
+} else {
+    showTOTPError(data.error || "Invalid code. Try again.");
+    clearTOTPBoxes();
+    focusFirstDigit();
 }
 /* ===== AI INDEXING ON LOGIN ===== */
 
@@ -1342,89 +1350,30 @@ async function showStep2() {
         }
 
         // SUCCESS LOGIN
-        if (loginBtn) {
-            loginBtn.textContent = '✓ Authenticated';
-            loginBtn.style.background = 'linear-gradient(135deg,#16a34a,#15803d)';
-            loginBtn.style.opacity = '1';
-        }
-
-        sessionStorage.setItem(
-            "vaultSessionToken",
-            result.sessionToken
-        );
-
-        sessionStorage.setItem(
-    "vaultSession",
-    result.sessionToken
-);
-
-// START 2-MINUTE TIMER
-resetInactivityTimer();
-
-// Use the master encryption password returned by the backend (not the user's
-// login password) — all files are encrypted with the admin master password,
-// so every mode needs it to decrypt, regardless of which key they logged in with.
-window.masterPassword =
-    result.secret
-    ? String(result.secret)
-    : String(pass);
-
-// Also persist so passkey / session-restore path can find it
-if(result.secret){
-    sessionStorage.setItem("vault_session_secret", result.secret);
+        // SUCCESS LOGIN — password correct, now go to TOTP step
+if (loginBtn) {
+    loginBtn.textContent = '✓ Password Verified';
+    loginBtn.style.background = 'linear-gradient(135deg,#16a34a,#15803d)';
+    loginBtn.style.opacity = '1';
 }
 
-   window.VAULT_MODE=
-result.mode;
+// ── Store result temporarily so TOTP step can use it after verification ──
+window._pendingAuthResult = result;
+window._pendingAuthPass   = pass;
+window._pendingAuthHash   = hash;   // needed for /verify-totp call
 
-   sessionStorage.setItem("vaultMode", result.mode);
+failedAttempts = 0;
 
-       if(
+// ── Slide step1 away → show TOTP step ──
+const step1 = document.getElementById("step1");
+step1.style.pointerEvents = "none";
+step1.classList.add("slide-up-exit");
 
-window.VAULT_MODE
-!=="ADMIN"
-
-){
-
-document
-.getElementById(
-"share-gear"
-)
-.style.display=
-"none";
-
-}
-
-masterPassword = window.masterPassword;
-
-        failedAttempts = 0;
-
-        sessionStartTime =
-            new Date();
-
-        const step1 =
-            document.getElementById(
-                "step1"
-            );
-
-        step1.style.pointerEvents =
-            "none";
-
-        step1.classList.add(
-            "slide-up-exit"
-        );
-
-        setTimeout(() => {
-
-            step1.style.display =
-                "none";
-
-            document.getElementById(
-                "step2"
-            ).style.display =
-                "flex";
-
-        }, 700);
+setTimeout(() => {
+    step1.style.display = "none";
+    document.getElementById("step-totp").style.display = "flex";
+    if (typeof startTOTPStep === "function") startTOTPStep(hash);
+}, 700);
 
     } catch (e) {
 
