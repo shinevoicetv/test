@@ -1458,7 +1458,7 @@ dash.classList.add(
 
             startInactivityMonitor();
 
-   listenForForceLogout();
+   setTimeout(() => listenForForceLogout(), 8000); // wait 8s for registration to complete
 
         },700);
 
