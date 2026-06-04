@@ -334,50 +334,102 @@ async function extractPDFText(file) {
 
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
+    console.log(`extractPDFText: processing page ${i}/${pdf.numPages}`);
 
-    // 1. Try native text layer first (fast, works for digital PDFs)
-    const content = await page.getTextContent();
-    const layerText = content.items.map(item => item.str).join(" ").trim();
+    // ── PASS 1: Native text layer ──────────────────────────────────────────
+    // Works for digital/born-digital PDFs (bank statements, certificates, etc.)
+    let layerText = "";
+    try {
+      const content = await page.getTextContent();
+      layerText = content.items
+        .map(item => item.str)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+    } catch (e) {
+      console.warn(`extractPDFText: text layer failed page ${i}:`, e);
+    }
 
-    if (layerText.length > 30) {
-      // Page has real text — use it
+    if (layerText.length > 50) {
+      // Rich native text — use it directly
+      console.log(`extractPDFText: page ${i} native text (${layerText.length} chars)`);
       fullText += layerText + "\n";
-    } else {
-      // Page is scanned — render to canvas and OCR with Tesseract
-      try {
-        // Render at high scale for OCR accuracy
-        const MIN_OCR_WIDTH  = 800;
-        const MIN_OCR_HEIGHT = 200;
-        const baseViewport   = page.getViewport({ scale: 1.0 });
+      continue; // no need to OCR this page
+    }
 
-        // Compute scale so the canvas always meets the minimum OCR dimensions
-        const scaleNeeded = Math.max(
-          2.0,
-          MIN_OCR_WIDTH  / baseViewport.width,
-          MIN_OCR_HEIGHT / baseViewport.height
-        );
+    // ── PASS 2: OCR (scanned / image-based pages) ──────────────────────────
+    // Covers passports, ID cards, certificates, handwritten docs, scanned PDFs
+    try {
+      const baseViewport = page.getViewport({ scale: 1.0 });
 
-        const viewport = page.getViewport({ scale: scaleNeeded });
-        const canvas   = document.createElement("canvas");
-        canvas.width   = Math.ceil(viewport.width);
-        canvas.height  = Math.ceil(viewport.height);
+      // Scale up to at least 2480px wide (A4 at 300 DPI) for maximum OCR accuracy
+      const TARGET_WIDTH = 2480;
+      const scaleNeeded  = Math.max(
+        3.0,                              // minimum 3× always
+        TARGET_WIDTH / baseViewport.width // or whatever gets us to 300 DPI equivalent
+      );
 
-        const ctx = canvas.getContext("2d");
-        await page.render({ canvasContext: ctx, viewport }).promise;
+      const viewport = page.getViewport({ scale: scaleNeeded });
+      const canvas   = document.createElement("canvas");
+      canvas.width   = Math.ceil(viewport.width);
+      canvas.height  = Math.ceil(viewport.height);
 
-        // Safety guard: if canvas is still too small after scaling, skip OCR
-        if (canvas.width < 3 || canvas.height < 3) {
-          console.warn(`OCR skipped page ${i}: canvas too small (${canvas.width}x${canvas.height})`);
-          continue;
-        }
+      console.log(`extractPDFText: page ${i} OCR canvas = ${canvas.width}×${canvas.height}px (scale ${scaleNeeded.toFixed(2)}×)`);
 
-        // Tesseract.js must be loaded: <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-        const { data: { text } } = await Tesseract.recognize(canvas, "eng", {
-          logger: () => {} // suppress internal progress logs
-        });
-        fullText += (text || "") + "\n";
-      } catch (ocrErr) {
-        console.warn(`OCR failed page ${i}:`, ocrErr);
+      // Render PDF page onto canvas
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";           // white background (helps OCR on transparent pages)
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await page.render({ canvasContext: ctx, viewport }).promise;
+
+      // Hard guard — Tesseract requires at least 3px width
+      if (canvas.width < 10 || canvas.height < 10) {
+        console.warn(`extractPDFText: page ${i} canvas too small — skipping OCR`);
+        continue;
+      }
+
+      // ── Contrast enhancement pass (greyscale + contrast boost) ────────
+      // Improves recognition on faded stamps, light ink, MRZ zones
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const d = imgData.data;
+      for (let p = 0; p < d.length; p += 4) {
+        // Convert to greyscale
+        const grey = 0.299 * d[p] + 0.587 * d[p + 1] + 0.114 * d[p + 2];
+        // Apply contrast stretch (push towards black/white)
+        const enhanced = grey < 128
+          ? Math.max(0,   grey * 0.75)        // darken dark pixels
+          : Math.min(255, 128 + (grey - 128) * 1.4); // brighten light pixels
+        d[p] = d[p + 1] = d[p + 2] = enhanced;
+        d[p + 3] = 255; // fully opaque
+      }
+      ctx.putImageData(imgData, 0, 0);
+
+      // ── Run Tesseract with optimal settings ───────────────────────────
+      const { data: { text } } = await Tesseract.recognize(canvas, "eng", {
+        logger: () => {},
+        tessedit_pageseg_mode:        "6",   // uniform block — scan everything
+        tessedit_ocr_engine_mode:     "1",   // LSTM neural net only (most accurate)
+        preserve_interword_spaces:    "1",   // keep spacing (important for MRZ)
+        tessedit_char_whitelist:      "",    // no whitelist — recognize all characters
+        min_characters_to_try:        "1",   // never skip short lines
+      });
+
+      const ocrText = (text || "").replace(/\s+/g, " ").trim();
+      console.log(`extractPDFText: page ${i} OCR extracted ${ocrText.length} chars`);
+
+      // If OCR returned nothing useful AND native layer had something (even thin), use native
+      if (ocrText.length < 10 && layerText.length > 0) {
+        console.warn(`extractPDFText: page ${i} OCR thin — falling back to native layer`);
+        fullText += layerText + "\n";
+      } else {
+        fullText += ocrText + "\n";
+      }
+
+    } catch (ocrErr) {
+      console.warn(`extractPDFText: OCR failed page ${i}:`, ocrErr);
+      // Last resort: if native layer had anything at all, save it
+      if (layerText.length > 0) {
+        fullText += layerText + "\n";
       }
     }
   }
@@ -1753,47 +1805,92 @@ async function extractFullPDFText(arrayBuffer) {
 
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
+    console.log(`extractFullPDFText: processing page ${i}/${pdf.numPages}`);
 
-    // Try native text layer first (works for digital PDFs)
-    const content = await page.getTextContent();
-    const layerText = content.items.map(item => item.str).join(" ").trim();
+    // ── PASS 1: Native text layer ──────────────────────────────────────────
+    let layerText = "";
+    try {
+      const content = await page.getTextContent();
+      layerText = content.items
+        .map(item => item.str)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+    } catch (e) {
+      console.warn(`extractFullPDFText: text layer failed page ${i}:`, e);
+    }
 
-    if (layerText.length > 30) {
+    if (layerText.length > 50) {
+      console.log(`extractFullPDFText: page ${i} native text (${layerText.length} chars)`);
       fullText += layerText + "\n";
-    } else {
-      // Scanned page — render canvas then OCR with Tesseract
-      // Requires in your HTML: <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-      try {
-        // Compute scale so canvas always meets minimum OCR dimensions
-        const MIN_OCR_WIDTH  = 800;
-        const MIN_OCR_HEIGHT = 200;
-        const baseViewport   = page.getViewport({ scale: 1.0 });
+      continue;
+    }
 
-        const scaleNeeded = Math.max(
-          2.0,
-          MIN_OCR_WIDTH  / baseViewport.width,
-          MIN_OCR_HEIGHT / baseViewport.height
-        );
+    // ── PASS 2: OCR (scanned / image-based pages) ──────────────────────────
+    try {
+      const baseViewport = page.getViewport({ scale: 1.0 });
 
-        const viewport = page.getViewport({ scale: scaleNeeded });
-        const canvas   = document.createElement("canvas");
-        canvas.width   = Math.ceil(viewport.width);
-        canvas.height  = Math.ceil(viewport.height);
+      // Scale to ~300 DPI equivalent (2480px wide for A4) for maximum accuracy
+      const TARGET_WIDTH = 2480;
+      const scaleNeeded  = Math.max(
+        3.0,
+        TARGET_WIDTH / baseViewport.width
+      );
 
-        await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+      const viewport = page.getViewport({ scale: scaleNeeded });
+      const canvas   = document.createElement("canvas");
+      canvas.width   = Math.ceil(viewport.width);
+      canvas.height  = Math.ceil(viewport.height);
 
-        // Safety guard: skip if canvas is still impossibly small
-        if (canvas.width < 3 || canvas.height < 3) {
-          console.warn(`OCR skipped page ${i}: canvas too small (${canvas.width}x${canvas.height})`);
-          continue;
-        }
+      console.log(`extractFullPDFText: page ${i} OCR canvas = ${canvas.width}×${canvas.height}px (scale ${scaleNeeded.toFixed(2)}×)`);
 
-        const { data: { text } } = await Tesseract.recognize(canvas, "eng", {
-          logger: () => {} // suppress internal progress logs
-        });
-        fullText += (text || "") + "\n";
-      } catch (ocrErr) {
-        console.warn(`OCR failed page ${i}:`, ocrErr);
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await page.render({ canvasContext: ctx, viewport }).promise;
+
+      if (canvas.width < 10 || canvas.height < 10) {
+        console.warn(`extractFullPDFText: page ${i} canvas too small — skipping`);
+        continue;
+      }
+
+      // ── Contrast enhancement (greyscale + contrast boost) ─────────────
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const d = imgData.data;
+      for (let p = 0; p < d.length; p += 4) {
+        const grey = 0.299 * d[p] + 0.587 * d[p + 1] + 0.114 * d[p + 2];
+        const enhanced = grey < 128
+          ? Math.max(0,   grey * 0.75)
+          : Math.min(255, 128 + (grey - 128) * 1.4);
+        d[p] = d[p + 1] = d[p + 2] = enhanced;
+        d[p + 3] = 255;
+      }
+      ctx.putImageData(imgData, 0, 0);
+
+      // ── Tesseract with strict settings ────────────────────────────────
+      const { data: { text } } = await Tesseract.recognize(canvas, "eng", {
+        logger: () => {},
+        tessedit_pageseg_mode:     "6",
+        tessedit_ocr_engine_mode:  "1",
+        preserve_interword_spaces: "1",
+        tessedit_char_whitelist:   "",
+        min_characters_to_try:     "1",
+      });
+
+      const ocrText = (text || "").replace(/\s+/g, " ").trim();
+      console.log(`extractFullPDFText: page ${i} OCR extracted ${ocrText.length} chars`);
+
+      if (ocrText.length < 10 && layerText.length > 0) {
+        console.warn(`extractFullPDFText: page ${i} OCR thin — using native layer fallback`);
+        fullText += layerText + "\n";
+      } else {
+        fullText += ocrText + "\n";
+      }
+
+    } catch (ocrErr) {
+      console.warn(`extractFullPDFText: OCR failed page ${i}:`, ocrErr);
+      if (layerText.length > 0) {
+        fullText += layerText + "\n";
       }
     }
   }
