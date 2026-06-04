@@ -8,6 +8,11 @@
 // ============ PASSWORD MANAGER ============
 const WORKER_URL = 'https://backend.shinumaths989.workers.dev'; // your worker URL
 
+// NOTE: If renderPMList is declared in another file, you can safely remove this stub.
+if (typeof renderPMList !== 'function') {
+  var renderPMList = function() { console.warn("renderPMList() is not implemented yet."); };
+}
+
 function openPasswordManager() {
   document.getElementById('passwordManagerModal').style.display = 'flex';
   renderPMList();
@@ -560,7 +565,7 @@ function renderPinnedSection(){
             savePinned();
             renderPinnedSection();
             // Re-render current category to update pin button states
-            if(currentCategory && allFilesData[currentCategory]){
+            if(typeof currentCategory !== 'undefined' && typeof allFilesData !== 'undefined' && allFilesData[currentCategory]){
                 renderFiles(allFilesData[currentCategory], currentCategory);
             }
         };
@@ -716,88 +721,48 @@ async function renderComparePane(side, file){
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
 
-    const page =
-    await pdf.getPage(pageNum);
+            const page = await pdf.getPage(pageNum);
 
-    // Get parent width
-    const containerWidth =
-    contentEl.clientWidth - 30;
+            // Get parent width
+            const containerWidth = contentEl.clientWidth - 30;
 
-    // Original PDF size
-    const originalViewport =
-    page.getViewport({
-        scale: 1
-    });
+            // Original PDF size
+            const originalViewport = page.getViewport({ scale: 1 });
 
-    // Auto fit scale
-    const fitScale =
-    containerWidth /
-    originalViewport.width;
+            // Auto fit scale
+            const fitScale = containerWidth / originalViewport.width;
 
-    // Apply user zoom INSIDE viewer only
-    const safeScale =
-Math.max(
-    fitScale,
-    0.8
-);
+            // Apply user zoom INSIDE viewer only
+            const safeScale = Math.max(fitScale, 0.8);
 
-const viewport =
-page.getViewport({
-    scale: safeScale
-});
+            const viewport = page.getViewport({ scale: safeScale });
 
-    // Create canvas
-    const canvas =
-    document.createElement(
-        'canvas'
-    );
+            // Create canvas
+            const canvas = document.createElement('canvas');
 
-    canvas.className =
-    'pdf-page';
+            canvas.className = 'pdf-page';
 
-    // Responsive styling
-    canvas.style.display =
-    "block";
+            // Responsive styling
+            canvas.style.display = "block";
+            canvas.style.margin = "0 auto 14px auto";
+            canvas.style.width = "100%";
+            canvas.style.maxWidth = "100%";
+            canvas.style.height = "auto";
+            canvas.style.borderRadius = "12px";
+            canvas.style.boxShadow = "0 4px 18 rgba(0,0,0,.12)";
 
-    canvas.style.margin =
-    "0 auto 14px auto";
+            // Render
+            const context = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
 
-    canvas.style.width =
-    "100%";
+            await page.render({
+                canvasContext: context,
+                viewport: viewport
+            }).promise;
 
-    canvas.style.maxWidth =
-    "100%";
-
-    canvas.style.height =
-    "auto";
-
-    canvas.style.borderRadius =
-    "12px";
-
-    canvas.style.boxShadow =
-    "0 4px 18px rgba(0,0,0,.12)";
-
-    // Render
-    const context =
-    canvas.getContext('2d');
-
-    canvas.width =
-    viewport.width;
-
-    canvas.height =
-    viewport.height;
-
-    await page.render({
-        canvasContext:
-        context,
-        viewport:
-        viewport
-    }).promise;
-
-    contentEl.appendChild(
-    canvas
-);
-}
+            contentEl.appendChild(canvas);
+        }
 
     } catch (err) {
         console.error(err);
@@ -816,6 +781,7 @@ function pickCompareDoc(side){
 ========================= */
 
 async function checkDocExpiryReminders(){
+    if (typeof allFilesData === 'undefined') return;
     const allFiles = [];
     Object.values(allFilesData).forEach(cat=>{
         if(Array.isArray(cat)) cat.forEach(f=>{ if(f.expiry) allFiles.push(f); });
