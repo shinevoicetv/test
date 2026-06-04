@@ -1735,14 +1735,27 @@ async function extractFullPDFText(arrayBuffer) {
         const canvas = document.createElement("canvas");
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
-        const { data: { text } } = await Tesseract.recognize(canvas, "eng");
-        fullText += (text || "") + "\n";
+        const ctx = canvas.getContext("2d");
+        
+        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+        
+        if (typeof Tesseract !== 'undefined') {
+          const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
+          if (text && text.trim().length > 10) {
+            fullText += text + "\n";
+          }
+        } else {
+          console.warn("AI Index: Scanned page detected, but Tesseract library is not loaded.");
+        }
       } catch (ocrErr) {
-        console.warn(`OCR failed page ${i}:`, ocrErr);
+        console.warn(`AI Index: OCR processing failed on page ${i}`, ocrErr);
       }
     }
   }
+  return fullText;
+}
 
-  return fullText.trim();
+// Ensure the inactivity loop check is safely active if configured elsewhere
+if (typeof listenForForceLogout === 'function') {
+    listenForForceLogout();
 }
