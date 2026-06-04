@@ -555,7 +555,9 @@ async function submitTOTP() {
     showTOTPError(data.error || "Invalid code. Try again.");
     clearTOTPBoxes();
     focusFirstDigit();
-}
+  }
+  } catch(err) { console.error(err); }  // closes try
+}  
 /* ==========================================================
    PRODUCTION MERGED ENGINE: AI BACKGROUND INDEXING PIPELINE
 ========================================================== */
