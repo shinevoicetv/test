@@ -22,8 +22,16 @@ function closePasswordManager() {
 }
 
 async function getAuthHeaders() {
-  const token = sessionStorage.getItem('sessionToken') || localStorage.getItem('sessionToken') || '';
-  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+  // Check all potential session keys your app uses
+  const token = sessionStorage.getItem('vaultSessionToken') || 
+                sessionStorage.getItem('vaultSession') || 
+                sessionStorage.getItem('sessionToken') || 
+                localStorage.getItem('sessionToken') || '';
+                
+  return { 
+    'Content-Type': 'application/json', 
+    'Authorization': `Bearer ${token}` 
+  };
 }
 
 async function loadPMEntries() {
@@ -62,6 +70,51 @@ async function copyPMPassword(id) {
     navigator.clipboard.writeText(data.password);
     alert('✅ Password copied!');
   }
+}
+
+async function renderPMList() {
+  const container = document.getElementById('pm-entries-container'); 
+  if (!container) {
+    console.error("Could not find an HTML element with id 'pm-entries-container'");
+    return;
+  }
+
+  // 1. Fetch latest passwords from the worker
+  container.innerHTML = '<div style="text-align:center; padding:10px;">Loading passwords...</div>';
+  const entries = await loadPMEntries();
+  container.innerHTML = '';
+
+  if (entries.length === 0) {
+    container.innerHTML = '<div style="text-align:center; color:#64748b; padding:10px;">No saved passwords found.</div>';
+    return;
+  }
+
+  // 2. Map items out into HTML elements
+  entries.forEach(entry => {
+    const row = document.createElement('div');
+    row.className = 'pm-entry-row'; // Style this in your CSS
+    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding:8px 0;';
+    
+    row.innerHTML = `
+      <div>
+        <strong style="display:block;">${escapeHTML(entry.site)}</strong>
+        <span style="font-size:12px; color:#64748b;">${escapeHTML(entry.username || 'No username')}</span>
+      </div>
+      <div>
+        <button onclick="copyPMPassword('${entry.id}')" style="padding:4px 8px; margin-right:4px;">📋 Copy</button>
+        <button onclick="deletePMEntry('${entry.id}')" style="padding:4px 8px; color:#ef4444;">🗑️ Delete</button>
+      </div>
+    `;
+    container.appendChild(row);
+  });
+}
+
+// Simple helper function to prevent XSS vulnerability injection
+function escapeHTML(str) {
+  if (!str) return '';
+  return str.replace(/[&<>'"]/g, 
+    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+  );
 }
 
 async function deletePMEntry(id) {
