@@ -576,11 +576,19 @@ async function submitTOTP() {
     window._pendingAuthPass   = null;
     window._pendingAuthHash   = null;
 
-} else {
-    showTOTPError(data.error || "Invalid code. Try again.");
-    clearTOTPBoxes();
-    focusFirstDigit();
+    } else {
+      showTOTPError(data.error || "Invalid code. Try again.");
+      clearTOTPBoxes();
+      focusFirstDigit();
+    }
+
+  } catch (err) {
+    console.error("TOTP verify error:", err);
+    showTOTPError("Verification failed. Please try again.");
+    if (btn) { btn.textContent = "VERIFY CODE"; btn.disabled = false; }
+  }
 }
+
 /* ==========================================================
    PRODUCTION MERGED ENGINE: AI BACKGROUND INDEXING PIPELINE
 ========================================================== */
