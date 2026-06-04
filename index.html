@@ -99,16 +99,17 @@ href="favicon.png">
 /* Fluid Layout Wrapper Container */
 .login-wrapper {
     width: 100%;
-    max-width: 450px;
+    max-width: 650px; /* Increased from 450px to fit matching post-login panel aesthetics */
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 20px;
-    padding: 30px 24px;
+    padding: 36px 32px; /* Amplified padding density for broader screens */
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); /* Sophisticated light shadow */
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); 
     animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     margin-bottom: 20px;
+    box-sizing: border-box;
 }
 
 .header-section { 
@@ -305,13 +306,14 @@ h1 {
 /* Minimal Environment Diagnostics Container */
 .status-container {
     width: 100%; 
-    max-width: 450px; 
+    max-width: 650px; /* Modified from 450px to cleanly snap directly beneath the login wrapper edge */
     display: grid; 
     grid-template-columns: 1fr; 
     gap: 12px; 
     opacity: 0; 
     animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards; 
     margin-bottom: 24px; 
+    box-sizing: border-box;
 }
 
 .status-card { 
