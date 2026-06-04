@@ -6,24 +6,31 @@
 ========================= */
 
 // ============ PASSWORD MANAGER ============
-let pmEntries = JSON.parse(localStorage.getItem('vault_passwords') || '[]');
+const WORKER_URL = 'https://backend.shinumaths989.workers.dev'; // your worker URL
 
-function openPasswordManager() {
-  document.getElementById('passwordManagerModal').style.display = 'flex';
-  renderPMList();
-}
-function closePasswordManager() {
-  document.getElementById('passwordManagerModal').style.display = 'none';
+async function getAuthHeaders() {
+  const token = sessionStorage.getItem('sessionToken') || localStorage.getItem('sessionToken') || '';
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
 }
 
-function savePMEntry() {
+async function loadPMEntries() {
+  const res = await fetch(`${WORKER_URL}/passwords`, { headers: await getAuthHeaders() });
+  const data = await res.json();
+  return data.entries || [];
+}
+
+async function savePMEntry() {
   const site = document.getElementById('pm-site').value.trim();
-  const user = document.getElementById('pm-username').value.trim();
-  const pass = document.getElementById('pm-password').value.trim();
+  const username = document.getElementById('pm-username').value.trim();
+  const password = document.getElementById('pm-password').value.trim();
   const notes = document.getElementById('pm-notes').value.trim();
-  if (!site || !pass) { alert('Please enter a site name and password.'); return; }
-  pmEntries.push({ id: Date.now(), site, user, pass, notes });
-  localStorage.setItem('vault_passwords', JSON.stringify(pmEntries));
+  if (!site || !password) { alert('Site and password are required.'); return; }
+
+  await fetch(`${WORKER_URL}/passwords`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ site, username, password, notes })
+  });
   document.getElementById('pm-site').value = '';
   document.getElementById('pm-username').value = '';
   document.getElementById('pm-password').value = '';
@@ -31,54 +38,27 @@ function savePMEntry() {
   renderPMList();
 }
 
-function deletePMEntry(id) {
-  if (!confirm('Delete this password entry?')) return;
-  pmEntries = pmEntries.filter(e => e.id !== id);
-  localStorage.setItem('vault_passwords', JSON.stringify(pmEntries));
-  renderPMList();
-}
-
-function copyPMPassword(pass) {
-  navigator.clipboard.writeText(pass).then(() => alert('✅ Password copied!'));
-}
-
-function togglePMPassword() {
-  const f = document.getElementById('pm-password');
-  f.type = f.type === 'password' ? 'text' : 'password';
-}
-
-function generatePMPassword() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-  let pwd = '';
-  for (let i = 0; i < 16; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
-  const f = document.getElementById('pm-password');
-  f.value = pwd;
-  f.type = 'text';
-}
-
-function renderPMList() {
-  const search = (document.getElementById('pm-search')?.value || '').toLowerCase();
-  const list = document.getElementById('pm-list');
-  const filtered = pmEntries.filter(e =>
-    e.site.toLowerCase().includes(search) || e.user.toLowerCase().includes(search)
-  );
-  if (!filtered.length) {
-    list.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:30px;font-size:14px;">No passwords saved yet.</div>';
-    return;
+async function copyPMPassword(id) {
+  const res = await fetch(`${WORKER_URL}/passwords/get-password`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ id })
+  });
+  const data = await res.json();
+  if (data.password) {
+    navigator.clipboard.writeText(data.password);
+    alert('✅ Password copied!');
   }
-  list.innerHTML = filtered.map(e => `
-    <div style="background:white;border-radius:14px;padding:16px 18px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);border:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:180px;">
-        <div style="font-weight:800;font-size:14px;color:#0f172a;">🌐 ${e.site}</div>
-        <div style="font-size:12px;color:#64748b;margin-top:3px;">👤 ${e.user || '—'}</div>
-        ${e.notes ? `<div style="font-size:11px;color:#94a3b8;margin-top:2px;">📝 ${e.notes}</div>` : ''}
-      </div>
-      <div style="display:flex;gap:8px;flex-shrink:0;">
-        <button onclick="copyPMPassword('${e.pass.replace(/'/g,"\\'")}') " style="padding:8px 12px;border:1px solid #3b82f6;border-radius:8px;background:white;color:#3b82f6;font-weight:700;cursor:pointer;font-size:12px;">📋 COPY</button>
-        <button onclick="deletePMEntry(${e.id})" style="padding:8px 12px;border:1px solid #ef4444;border-radius:8px;background:white;color:#ef4444;font-weight:700;cursor:pointer;font-size:12px;">🗑️ DELETE</button>
-      </div>
-    </div>
-  `).join('');
+}
+
+async function deletePMEntry(id) {
+  if (!confirm('Delete this entry?')) return;
+  await fetch(`${WORKER_URL}/passwords/delete`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ id })
+  });
+  renderPMList();
 }
 
 /* =========================
