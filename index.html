@@ -2338,7 +2338,6 @@ Scan QR to open secure link
 #ai-messages::-webkit-scrollbar { width:4px; }
 #ai-messages::-webkit-scrollbar-thumb { background:#3a3a6a; border-radius:4px; }
 </style>
-   <!-- ========================= PASSWORD MANAGER MODAL ========================= -->
 <div id="passwordManagerModal" class="modal" style="display:none;">
   <div class="modal-content" style="max-width:700px;height:90vh;margin:40px auto;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;">
 
@@ -2349,7 +2348,6 @@ Scan QR to open secure link
 
     <div style="padding:20px;background:#f8fafc;flex:1;overflow-y:auto;">
 
-      <!-- ADD NEW PASSWORD FORM -->
       <div style="background:white;border-radius:16px;padding:20px;margin-bottom:20px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #e2e8f0;">
         <div style="font-weight:800;font-size:15px;margin-bottom:14px;color:#0f172a;">➕ Add New Password</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
@@ -2358,18 +2356,16 @@ Scan QR to open secure link
         </div>
         <div style="display:flex;gap:10px;margin-bottom:12px;">
           <input type="password" id="pm-password" placeholder="Password" style="flex:1;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:13px;">
-          <button onclick="togglePMPassword()" style="padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;background:white;cursor:pointer;font-size:14px;">👁️</button>
+          <button onclick="togglePMPassword(this, 'pm-password')" style="padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;background:white;cursor:pointer;font-size:14px;">👁️</button>
           <button onclick="generatePMPassword()" style="padding:10px 14px;border:none;border-radius:10px;background:#3b82f6;color:white;font-weight:700;cursor:pointer;font-size:12px;">🔀 GENERATE</button>
         </div>
         <input type="text" id="pm-notes" placeholder="Notes (optional)" style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:13px;margin-bottom:12px;box-sizing:border-box;">
         <button onclick="savePMEntry()" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#0f172a,#1e40af);color:white;font-weight:800;cursor:pointer;font-size:14px;">💾 SAVE PASSWORD</button>
       </div>
 
-      <!-- SEARCH BAR -->
       <input type="text" id="pm-search" placeholder="🔍 Search passwords..." oninput="renderPMList()" style="width:100%;padding:12px 16px;border:1px solid #e2e8f0;border-radius:12px;font-size:13px;margin-bottom:16px;box-sizing:border-box;background:white;">
 
-      <!-- PASSWORDS LIST -->
-      <div id="pm-list"></div>
+      <div id="pm-entries-container"></div>
 
     </div>
   </div>
