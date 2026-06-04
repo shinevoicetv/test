@@ -1130,35 +1130,49 @@ async function sendAIMessage() {
       body: JSON.stringify({ question })
     });
 
-    const data = await res.json();
+     const data = await response.json();
+     
+    if (data.success && data.reply) {
+  // Clear any existing thinking indicators or text
+  aiResponseText.innerHTML = ""; 
 
-    showAITyping(false);
+  // Split text into individual words while preserving whitespace structures
+  const words = data.reply.split(/(\s+)/);
+  let wordIndex = 0;
 
-    // Build a readable reply from whatever your Worker returns
-    let reply = '';
-    if (data.reply) {
-  reply = data.reply;
-} else if (data.answer) {
-  reply = data.answer;
-} else if (data.results && data.results.length > 0) {
-  reply = '📄 Found in: **' + data.results.map(x => x.fileName).join(', ') + '**';
-  if (data.results[0].snippet) reply += '\n\n' + data.results[0].snippet;
-} else if (data.message) {
-  reply = data.message;
-} else if (data.error) {
-  reply = '⚠️ ' + data.error;
-} else {
-  reply = 'No matching information found in your vault documents.';
-}
+  function printWordByWord() {
+    if (wordIndex < words.length) {
+      const span = document.createElement("span");
+      span.innerText = words[wordIndex];
+      
+      // Apply immediate inline styles for hardware-accelerated fade transitions
+      span.style.opacity = "0";
+      span.style.filter = "blur(3px)";
+      span.style.transition = "opacity 0.2s ease-out, filter 0.2s ease-out";
+      span.style.display = "inline-block";
+      span.style.whiteSpace = "pre-wrap"; // Maintains syntax indentation & newlines
 
-    appendAIBubble(reply);
-    aiChatHistory.push({ role: 'model', parts: [{ text: reply }] });
+      aiResponseText.appendChild(span);
 
-  } catch (err) {
-    showAITyping(false);
-    appendAIBubble('⚠️ Could not reach Vault AI. Please check your connection and try again.');
-    console.error('AI Chat error:', err);
+      // Trigger the transition immediately on the next animation frame
+      requestAnimationFrame(() => {
+        span.style.opacity = "1";
+        span.style.filter = "blur(0px)";
+      });
+
+      wordIndex++;
+      
+      // Delay speed factor (25ms spacing breaks up heavy context outputs beautifully)
+      setTimeout(printWordByWord, 25);
+    }
   }
+
+  // Fire the animation sequence
+  printWordByWord();
+  
+} else {
+  // Catch fallback instances where an operational error code returns from the server
+  aiResponseText.innerText = data.error || "An error occurred fetching detailed vault profiles.";
 }
 
 function appendUserBubble(text) {
