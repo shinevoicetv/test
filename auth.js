@@ -556,252 +556,254 @@ async function submitTOTP() {
     clearTOTPBoxes();
     focusFirstDigit();
 }
-/* ===== AI INDEXING ON LOGIN ===== */
-
+/* ==========================================================
+   PRODUCTION MERGED ENGINE: AI BACKGROUND INDEXING PIPELINE
+========================================================== */
 async function runAIIndexingOnLogin() {
+    console.log("runAIIndexingOnLogin() CALLED");
 
-   console.log(
-  "runAIIndexingOnLogin() CALLED"
-);
-   
-  const token = sessionStorage.getItem('vaultSessionToken') ||
-                sessionStorage.getItem('vaultSession') || '';
+    // Extract authorization payload tokens
+    const token = sessionStorage.getItem("vaultSessionToken") ||
+                  sessionStorage.getItem("vaultSession") || "";
+    if (!token) {
+        console.warn("AI Index: Halt. Operational authorization token is missing.");
+        return;
+    }
 
-  // Check if already indexed
-  try {
-    const checkRes = await fetch(
-      'https://backend.shinumaths989.workers.dev/ai-index-status',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+    // ── 1. CHECK ENGINE GLOBAL STATUS ────────────────────────────────────
+    try {
+        const checkRes = await fetch('https://backend.shinumaths989.workers.dev/ai-index-status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        const checkData = await checkRes.json();
+        
+        // Fast path check bypass parameter
+        if (false && checkData.indexed) {
+            console.log('✦ Vault AI: Already indexed. Fast answers ready.');
+            updateAIBtn('ready');
+            return;
         }
-      }
-    );
-    const checkData = await checkRes.json();
-    if (false && checkData.indexed) {
-  console.log(
-    '✦ Vault AI: Already indexed. Fast answers ready.'
-  );
+        console.log("FORCING RE-INDEX SCRIPT RUN");
+    } catch(e) {
+        console.log('✦ Index check failed, proceeding to index extraction layer.', e);
+    }
 
-  updateAIBtn('ready');
-  return;
-}
-     console.log(
-  "FORCING RE-INDEX"
-);
-  } catch(e) {
-    console.log('✦ Index check failed, proceeding to index.', e);
-  }
+    console.log('✦ Vault AI: Scanning and compiling repository documents...');
+    updateAIBtn('indexing', '✦ Indexing...');
 
-  console.log('✦ Vault AI: First login — scanning all documents...');
-  updateAIBtn('indexing', '✦ Indexing...');
+    // ── 2. DYNAMIC MEMORY SYNCHRONIZATION LOOP ───────────────────────────
+    let waited = 0;
+    while ((!window.allFilesData || !Object.keys(window.allFilesData).length) && waited < 30000) {
+        console.log("Waiting for files storage layer to materialize...", waited, window.allFilesData);
+        await new Promise(r => setTimeout(r, 500));
+        waited += 500;
+    }
 
-  // Wait for allFilesData to be populated
-  let waited = 0;
+    console.log("Files map ready status:", window.allFilesData);
 
-while (
-  (
-    !window.allFilesData ||
-    !Object.keys(window.allFilesData).length
-  ) &&
-  waited < 30000
-) {
+    // Parse files dictionary map into a sequential array schema
+    let allFiles = [];
+    try {
+        for (const items of Object.values(window.allFilesData || {})) {
+            if (Array.isArray(items)) {
+                allFiles.push(...items);
+            }
+        }
+    } catch(e) { 
+        console.warn('allFilesData matrix storage parse error', e); 
+    }
 
-  console.log(
-    "Waiting for files...",
-    waited,
-    window.allFilesData
-  );
+    // Fallback: If local memory structure is completely blank, query server directly
+    if (!allFiles.length) {
+        console.log("AI Index: Local payload trace empty. Polling server backend manifest instead...");
+        try {
+            const res = await fetch("https://backend.shinumaths989.workers.dev/files.json", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const data = await res.json();
+            for (const items of Object.values(data)) {
+                if (Array.isArray(items)) allFiles.push(...items);
+            }
+        } catch (e) {
+            console.error("AI Index: Critical exit. Unable to gather file lists registry.", e);
+            updateAIBtn('ready');
+            return;
+        }
+    }
 
-  await new Promise(
-    r => setTimeout(r, 500)
-  );
-
-  waited += 500;
-}
-
-console.log(
-  "Files ready:",
-  window.allFilesData
-);
-
-  const files = [];
-   console.log("ALL FILE DATA:", window.allFilesData);
-   console.log(
-  "FIRST FILE SAMPLE:",
-  Object.values(window.allFilesData)[0]?.[0]
-);
-  try {
-    for (const items of Object.values(window.allFilesData || {})) {
-      if (Array.isArray(items)) {
-        for (const f of items) {
-
-  const file =
-    f.file;
-
-  const name =
-    f.name ||
-    f.fileName ||
-    f.filename ||
-    "Unnamed File";
-
-  if (file && name) {
-
-    files.push({
-      file,
-      name
+    // Filter pipeline tracking: Strict evaluation targeting document files (.pdf, .enc)
+    const pdfFiles = allFiles.filter(f => {
+        const pathStr = (f.file || f.name || f.fileName || f.path || "").toLowerCase();
+        return pathStr.endsWith(".pdf") || pathStr.endsWith(".enc");
     });
 
-  }
-} 
-      }
+    if (!pdfFiles.length) {
+        console.log('✦ No compatible PDF documents found to index inside vault.');
+        updateAIBtn('ready');
+        return;
     }
-  } catch(e) { console.warn('allFilesData parse error', e); }
 
-   console.log(
-  "FILES FOUND:",
-  files
-);
+    console.log(`AI Index: ${pdfFiles.length} candidate documents discovered. Validating chunk status logs...`);
 
-  if (!files.length) {
-    console.log('✦ No files found to index.');
-    updateAIBtn('ready');
-    return;
-  }
+    // ── 3. QUERY PERSISTENCE STATUS FOR SKIPPING COMPLETED DOCS ─────────
+    let alreadyIndexed = new Set();
+    try {
+        const progressRes = await fetch('https://backend.shinumaths989.workers.dev/ai-chunk-status-all', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({})
+        });
+        const progressData = await progressRes.json();
+        
+        // Map target names from both potential status attributes (indexed / files)
+        const completedList = progressData.indexed || progressData.files || [];
+        completedList.forEach(name => alreadyIndexed.add(name));
+        
+        console.log(`AI Index: ${alreadyIndexed.size} document structures verified in Firestore.`);
+    } catch(e) {
+        console.warn('AI Index: Progress checkpoint trace failed — Processing full array index scope.', e);
+    }
 
-  // STEP 1: Get already indexed files
-let indexedFiles = [];
+    let doneCount = alreadyIndexed.size;
 
-try {
+    // ── 4. RESUME CORE INDEX EXTRACTION & CHUNKING LOOP ──────────────────
+    for (const fileEntry of pdfFiles) {
+        const filePath = fileEntry.file || fileEntry.path || fileEntry.fileName || "";
+        const fileName = fileEntry.name || fileEntry.filename || filePath.split("/").pop() || "Unnamed Document";
 
-  const progressRes =
-    await fetch(
-      'https://backend.shinumaths989.workers.dev/ai-index-progress',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type':
-          'application/json',
-
-          'Authorization':
-          `Bearer ${token}`
+        // Skip processed items immediately
+        if (alreadyIndexed.has(fileName)) {
+            console.log(`✦ Skipping processed index file: ${fileName}`);
+            continue;
         }
-      }
-    );
 
-  const progressData =
-    await progressRes.json();
+        console.log(`✦ Resuming Index pipeline processing: ${fileName}`);
+        updateAIBtn('indexing', `✦ ${doneCount}/${pdfFiles.length}`);
 
-  indexedFiles =
-    progressData.files || [];
+        try {
+            // Step A: Download stream buffer from storage vault
+            const dlRes = await fetch(
+                `https://backend.shinumaths989.workers.dev/docs/${filePath}`,
+                { headers: { "Authorization": `Bearer ${token}` } }
+            );
+            if (!dlRes.ok) {
+                console.warn(`AI Index: Extraction dispatch failed for "${fileName}" (HTTP ${dlRes.status})`);
+                continue;
+            }
 
-} catch(e){
+            const encryptedBuffer = await dlRes.arrayBuffer();
 
-  console.warn(
-    'Could not load progress',
-    e
-  );
-}
+            // Step B: Cryptographic layer decryption
+            let decryptedBuffer;
+            try {
+                // Tries localized decryption utility first, switches to global window reference fallback
+                if (typeof decryptVaultFile === 'function') {
+                    decryptedBuffer = await decryptVaultFile(encryptedBuffer);
+                } else if (typeof indexAI === 'function') {
+                    // Fallback redirect hook if alternate helper wrapper indexAI architecture operates execution
+                    await indexAI(fileEntry.url || filePath, fileName);
+                    doneCount++;
+                    continue; 
+                } else {
+                    throw new Error("Missing decryption library mapping runtime components.");
+                }
+            } catch (decruptErr) {
+                console.warn(`AI Index: Decryption failed for target "${fileName}" — Skipping node loop.`, decruptErr);
+                continue;
+            }
 
-// Convert to fast lookup
-const indexedSet =
-  new Set(indexedFiles);
+            // Step C: Content string conversion extraction (with OCR mechanics)
+            const fullText = await extractFullPDFText(decryptedBuffer);
+            if (!fullText || fullText.length < 50) {
+                console.warn(`AI Index: Document element "${fileName}" evaluated as zero length raw string content. Skipping...`);
+                continue;
+            }
 
-console.log(
-  `AI Index: ${
-    indexedSet.size
-  } file(s) already fully indexed in Firestore.`
-);
+            console.log(`AI Index: Document string parse complete "${fileName}" — (${fullText.length} characters parsed)`);
 
-let done = indexedSet.size;
+            // Step D: Calculate mathematical content overlaps mapping (800 window size / 100 char overlap)
+            const CHUNK_SIZE = 800;
+            const OVERLAP    = 100;
+            const chunks = [];
+            for (let i = 0; i < fullText.length; i += (CHUNK_SIZE - OVERLAP)) {
+                chunks.push(fullText.slice(i, i + CHUNK_SIZE));
+                if (i + CHUNK_SIZE >= fullText.length) break;
+            }
 
-// STEP 2: Resume indexing
-for (const file of files) {
+            console.log(`AI Index: Array split processing completed. Transferring ${chunks.length} blocks to matrix database...`);
 
-  try {
+            // Step E: Stream individual index segments to Cloudflare vector worker
+            let uploadedChunksCount = 0;
+            for (let i = 0; i < chunks.length; i++) {
+                try {
+                    const chunkRes = await fetch("https://backend.shinumaths989.workers.dev/ai-index", {
+                        method: "POST",
+                        headers: { 
+                            "Content-Type": "application/json", 
+                            "Authorization": `Bearer ${token}` 
+                        },
+                        body: JSON.stringify({
+                            fileName:     `${fileName} [chunk ${i + 1}/${chunks.length}]`,
+                            baseFileName: fileName,
+                            chunkText:    chunks[i],
+                            chunkIndex:   i,
+                            totalChunks:  chunks.length
+                        })
+                    });
+                    if (chunkRes.ok) uploadedChunksCount++;
+                } catch (chunkErr) {
+                    console.warn(`AI Index: Serialization delivery failure on segment chunk index block: ${i + 1}`, chunkErr);
+                }
 
-    // Skip completed file
-    if (
-      indexedSet.has(
-        file.name
-      )
-    ) {
+                // Internal Throttling Layer: Every 10 iterations pause loop for 300ms to preserve thread execution capacity
+                if (i % 10 === 9) {
+                    await new Promise(r => setTimeout(r, 300));
+                }
+            }
 
-      console.log(
-        `✦ Skipping: ${file.name}`
-      );
+            console.log(`AI Index: Storage save loop verified "${fileName}" — ${uploadedChunksCount}/${chunks.length} matrix slices updated.`);
 
-      continue;
+            // Step F: Fire sync event payload tracking completion milestone status to persistence records
+            await fetch('https://backend.shinumaths989.workers.dev/ai-file-indexed', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ fileName: fileName })
+            });
+
+            doneCount++;
+            updateAIBtn('indexing', `✦ ${doneCount}/${pdfFiles.length}`);
+
+        } catch (innerLoopErr) {
+            console.error(`AI Index: Operational failure encountered handling item payload reference context: "${fileName}"`, innerLoopErr);
+        }
     }
 
-    console.log(
-      `✦ Resuming: ${file.name}`
-    );
+    // ── 5. FINALIZATION STATE WRITEOUT AND REGISTRATION ──────────────────
+    try {
+        await fetch('https://backend.shinumaths989.workers.dev/ai-index-status', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ indexed: true })
+        });
+    } catch(statusUpdateErr) {
+        console.warn("AI Index: Global status bit update error.", statusUpdateErr);
+    }
 
-    await indexAI(
-      file.url,
-      file.name
-    );
-
-    done++;
-
-    updateAIBtn(
-      'indexing',
-      `✦ ${done}/${files.length}`
-    );
-
-    console.log(
-      `✦ Indexed: ${file.name}`
-    );
-
-    // Save progress immediately
-    await fetch(
-      'https://backend.shinumaths989.workers.dev/ai-file-indexed',
-      {
-        method:'POST',
-
-        headers:{
-          'Content-Type':
-          'application/json',
-
-          'Authorization':
-          `Bearer ${token}`
-        },
-
-        body: JSON.stringify({
-          fileName:
-          file.name
-        })
-      }
-    );
-
-  } catch(e) {
-
-    console.warn(
-      `✦ Failed: ${file.name}`,
-      e
-    );
-  }
-}
-  // Mark as fully indexed in Firestore
-  try {
-    await fetch(
-      'https://backend.shinumaths989.workers.dev/ai-index-status',
-      {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ indexed: true })
-      }
-    );
-  } catch(e) {}
-
-  updateAIBtn('ready');
-  console.log('✦ Vault AI: All documents indexed!');
+    updateAIBtn('ready');
+    console.log('✦ Vault AI: All repository structures completely mapped. System execution thread finished!');
 }
 
 async function decryptVaultFile(arrayBuffer) {
@@ -1743,143 +1745,4 @@ async function extractFullPDFText(arrayBuffer) {
   }
 
   return fullText.trim();
-}
-
-async function runAIIndexingOnLogin() {
-  const token = sessionStorage.getItem("vaultSessionToken") ||
-                sessionStorage.getItem("vaultSession") || "";
-  if (!token) return;
-
-  // ── 1. Get all files the current user can access ─────────────────────
-  let allFiles = [];
-  try {
-    const res = await fetch("https://backend.shinumaths989.workers.dev/files.json", {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
-    const data = await res.json();
-    for (const items of Object.values(data)) {
-      if (Array.isArray(items)) allFiles.push(...items);
-    }
-  } catch (e) {
-    console.error("AI Index: Could not fetch file list", e);
-    return;
-  }
-
-  // Keep only PDFs / encrypted PDFs
-  const pdfFiles = allFiles.filter(f => {
-    const name = (f.file || f.name || f.fileName || "").toLowerCase();
-    return name.endsWith(".pdf") || name.endsWith(".enc");
-  });
-
-  if (!pdfFiles.length) {
-    console.log("AI Index: No PDF files found.");
-    return;
-  }
-
-  console.log(`AI Index: ${pdfFiles.length} PDF(s) found. Checking Firestore...`);
-
-  // ── 2. Ask Worker which files are already FULLY indexed ───────────────
-  let alreadyIndexed = new Set();
-  try {
-    const statusRes = await fetch(
-      "https://backend.shinumaths989.workers.dev/ai-chunk-status-all",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({})
-      }
-    );
-    const statusData = await statusRes.json();
-    (statusData.indexed || []).forEach(name => alreadyIndexed.add(name));
-    console.log(`AI Index: ${alreadyIndexed.size} file(s) already fully indexed in Firestore.`);
-  } catch (e) {
-    console.warn("AI Index: Status check failed — will attempt all files", e);
-  }
-
-  // ── 3. Index every file not yet in Firestore ──────────────────────────
-  for (const fileEntry of pdfFiles) {
-    const filePath = fileEntry.file || fileEntry.path || fileEntry.fileName || "";
-    const fileName = filePath.split("/").pop();
-
-    if (alreadyIndexed.has(fileName)) {
-      console.log(`AI Index: "${fileName}" ✓ already indexed — skip`);
-      continue;
-    }
-
-    console.log(`AI Index: Processing "${fileName}"...`);
-
-    try {
-      // Download encrypted file
-      const dlRes = await fetch(
-        `https://backend.shinumaths989.workers.dev/docs/${filePath}`,
-        { headers: { "Authorization": `Bearer ${token}` } }
-      );
-      if (!dlRes.ok) {
-        console.warn(`AI Index: Download failed for "${fileName}" (HTTP ${dlRes.status})`);
-        continue;
-      }
-
-      const encryptedBuffer = await dlRes.arrayBuffer();
-
-      // Decrypt
-      let decryptedBuffer;
-      try {
-        decryptedBuffer = await decryptVaultFile(encryptedBuffer);
-      } catch (e) {
-        console.warn(`AI Index: Decrypt failed for "${fileName}" — skip`, e);
-        continue;
-      }
-
-      // Extract full text (OCR for scanned pages)
-      const fullText = await extractFullPDFText(decryptedBuffer);
-
-      if (!fullText || fullText.length < 50) {
-        console.warn(`AI Index: "${fileName}" — no text extracted, skip`);
-        continue;
-      }
-
-      console.log(`AI Index: "${fileName}" — ${fullText.length} chars extracted`);
-
-      // Split into overlapping 800-char chunks
-      const CHUNK_SIZE = 800;
-      const OVERLAP    = 100;
-      const chunks = [];
-      for (let i = 0; i < fullText.length; i += (CHUNK_SIZE - OVERLAP)) {
-        chunks.push(fullText.slice(i, i + CHUNK_SIZE));
-        if (i + CHUNK_SIZE >= fullText.length) break;
-      }
-
-      console.log(`AI Index: "${fileName}" — uploading ${chunks.length} chunks...`);
-
-      // Upload every chunk to Worker → Firestore
-      let uploaded = 0;
-      for (let i = 0; i < chunks.length; i++) {
-        try {
-          const r = await fetch("https://backend.shinumaths989.workers.dev/ai-index", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify({
-              fileName:     `${fileName} [chunk ${i + 1}/${chunks.length}]`,
-              baseFileName: fileName,
-              chunkText:    chunks[i],
-              chunkIndex:   i,
-              totalChunks:  chunks.length
-            })
-          });
-          if (r.ok) uploaded++;
-        } catch (e) {
-          console.warn(`AI Index: chunk ${i + 1} upload failed`, e);
-        }
-        // Throttle every 10 chunks to avoid hammering
-        if (i % 10 === 9) await new Promise(r => setTimeout(r, 300));
-      }
-
-      console.log(`AI Index: ✅ "${fileName}" — ${uploaded}/${chunks.length} chunks saved to Firestore`);
-
-    } catch (err) {
-      console.error(`AI Index: Unexpected error for "${fileName}"`, err);
-    }
-  }
-
-  console.log("AI Index: ✅ Done. All chunks globally available for all users.");
 }
