@@ -1118,64 +1118,36 @@ async function hashPassword(password) {
     .join("");
 }
    
+/* ==========================================================
+   FIXED STEP 1 AUTHENTICATION GATEWAY WITH CARD TARGETS
+========================================================== */
 async function showStep2() {
 
-   clearTimeout(
-    inactivityTimer
-);
+    clearTimeout(inactivityTimer);
 
     const now = Date.now();
 
     if (now < lockUntil) {
-        const remaining =
-            Math.ceil(
-                (lockUntil - now) / 1000
-            );
-
-        alert(
-            `Too many wrong attempts.\nTry again in ${remaining} seconds.`
-        );
-
+        const remaining = Math.ceil((lockUntil - now) / 1000);
+        alert(`Too many wrong attempts.\nTry again in ${remaining} seconds.`);
         return;
     }
 
-    const visitorName =
-        document
-        .getElementById(
-            "user-name"
-        )
-        .value.trim();
+    // Capture responsive field values
+    const visitorName = document.getElementById("user-name").value.trim();
+    const pass = document.getElementById("vault-pass").value.trim();
+    const purpose = document.getElementById("user-purpose").value.trim();
 
-    const pass =
-        document
-        .getElementById(
-            "vault-pass"
-        )
-        .value.trim();
-
-    const purpose =
-        document
-        .getElementById(
-            "user-purpose"
-        )
-        .value.trim();
-
-    if (
-        !visitorName ||
-        !purpose ||
-        !pass
-    ) {
-        alert(
-            "Full Name, Purpose, and Password are required."
-        );
+    if (!visitorName || !purpose || !pass) {
+        alert("Username, Access Context, and Access Matrix Pin are required.");
         return;
     }
 
-    // Show loading state on button
-    const loginBtn = document.querySelector('#step1 .btn-primary');
+    // Acquire primary action node buttons
+    const loginBtn = document.getElementById('submitBtn');
     const originalBtnText = loginBtn ? loginBtn.textContent : '';
     if (loginBtn) {
-        loginBtn.textContent = '🔐 Connecting...';
+        loginBtn.textContent = '🔐 Connecting Secure Server...';
         loginBtn.disabled = true;
         loginBtn.style.opacity = '0.7';
     }
@@ -1194,29 +1166,30 @@ async function showStep2() {
         const box = document.createElement('div');
         box.id = 'login-error-box';
         box.style.cssText = `
-            background:#fef2f2;
-            border:1px solid #fca5a5;
-            border-radius:14px;
-            padding:16px 18px;
-            margin-top:12px;
-            text-align:left;
-            animation:fadeInUp .3s ease;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 16px;
+            text-align: left;
+            animation: fadeInUp .3s ease;
         `;
         box.innerHTML = `
-            <div style="font-weight:800;color:#dc2626;font-size:14px;margin-bottom:6px;">⚠️ ${title}</div>
-            <div style="font-size:12.5px;color:#7f1d1d;line-height:1.6;">${detail}</div>
+            <div style="font-weight:800;color:var(--danger);font-size:13px;margin-bottom:4px;">⚠️ ${title}</div>
+            <div style="font-size:12px;color:#fff;line-height:1.5;">${detail}</div>
             <button onclick="this.parentElement.remove()" style="
-                margin-top:10px;border:none;background:#dc2626;color:white;
-                border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">
+                margin-top:10px;border:none;background:var(--danger);color:white;
+                border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;">
                 Dismiss
             </button>
         `;
-        const card = document.querySelector('#step1 .step-card');
+        
+        // CORRECTION: Target .login-wrapper container instead of obsolete .step-card
+        const card = document.querySelector('#step1 .login-wrapper');
         if (card) card.appendChild(box);
         else alert(title + ': ' + detail);
     };
 
-    // Fetch with timeout helper
     const fetchWithTimeout = (url, options, ms = 12000) => {
         const controller = new AbortController();
         const tid = setTimeout(() => controller.abort(), ms);
@@ -1225,15 +1198,8 @@ async function showStep2() {
     };
 
     try {
-
-        // store password in memory only
         masterPassword = pass;
-
-        // hash password
-        const hash =
-            await hashPassword(
-                pass
-            );
+        const hash = await hashPassword(pass);
 
         let res;
         try {
@@ -1241,9 +1207,7 @@ async function showStep2() {
                 "https://backend.shinumaths989.workers.dev/get-secret",
                 {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ hash })
                 },
                 12000
@@ -1251,141 +1215,102 @@ async function showStep2() {
         } catch (fetchErr) {
             restoreLoginBtn();
             if (fetchErr.name === 'AbortError') {
-                showLoginError(
-                    'Connection Timed Out',
-                    'The secure server took too long to respond. Check your internet connection and try again.'
-                );
+                showLoginError('Connection Timed Out', 'The secure server took too long to respond.');
             } else if (!navigator.onLine) {
-                showLoginError(
-                    'No Internet Connection',
-                    'Your device appears to be offline. Please connect to Wi-Fi or mobile data and try again.'
-                );
+                showLoginError('Offline', 'Your device appears to be offline.');
             } else {
-                showLoginError(
-                    'Cannot Reach Secure Server',
-                    'Your network may be blocking the connection. Try switching between Wi-Fi and mobile data, or disable a VPN if active.'
-                );
+                showLoginError('Server Unreachable', 'Your network may be blocking connection points.');
             }
             return;
         }
 
         if (res.status >= 500) {
             restoreLoginBtn();
-            showLoginError(
-                'Server Temporarily Unavailable',
-                'The secure backend returned an error (HTTP ' + res.status + '). Please wait a moment and try again.'
-            );
+            showLoginError('Server Error', 'Secure node returned an error state (HTTP ' + res.status + ').');
             return;
         }
 
-        const contentType =
-            res.headers.get(
-                "content-type"
-            ) || "";
-
-        if (
-            !res.ok &&
-            contentType.includes(
-                "text/html"
-            )
-        ) {
+        if (!res.ok && (res.headers.get("content-type") || "").includes("text/html")) {
             restoreLoginBtn();
-            showLoginError(
-                'Access Blocked by Firewall',
-                'The vault firewall rejected this connection. This may be due to your network or location.'
-            );
+            showLoginError('Access Blocked', 'The vault firewall rejected this identity node link.');
             return;
         }
 
         let result = {};
-        try {
-            result = await res.json();
-        } catch {
+        try { result = await res.json(); } catch {
             restoreLoginBtn();
-            showLoginError(
-                'Invalid Server Response',
-                'The server returned an unexpected response. Please try again.'
-            );
+            showLoginError('Response Fault', 'The server returned an unreadable payload pattern.');
             return;
         }
 
-        // failed login
-        if (
-            !res.ok ||
-            !result.success ||
-            !result.authorized
-        ) {
-
+        if (!res.ok || !result.success || !result.authorized) {
             restoreLoginBtn();
             failedAttempts++;
 
-            if (
-                failedAttempts >= 5
-            ) {
-
-                sendSecurityAlert(
-                    "Multiple failed password attempts"
-                );
-
-                lockUntil =
-                    Date.now() +
-                    300000;
-
+            if (failedAttempts >= 5) {
+                sendSecurityAlert("Multiple failed password attempts");
+                lockUntil = Date.now() + 300000;
                 failedAttempts = 0;
-
-                showLoginError(
-                    'Vault Locked',
-                    'Too many failed attempts. The vault is locked for 5 minutes for security.'
-                );
-
+                showLoginError('Vault Locked', 'Too many unauthorized access requests. Security freeze for 5 minutes.');
             } else {
-
-                showLoginError(
-                    'Wrong Access Key',
-                    `Incorrect password. You have ${5 - failedAttempts} attempt${5 - failedAttempts === 1 ? '' : 's'} remaining.`
-                );
+                showLoginError('Authentication Failure', `Incorrect access token matrix sequence. ${5 - failedAttempts} attempts remain.`);
             }
-
             return;
         }
 
-        // SUCCESS LOGIN
-        // SUCCESS LOGIN — password correct, now go to TOTP step
-if (loginBtn) {
-    loginBtn.textContent = '✓ Password Verified';
-    loginBtn.style.background = 'linear-gradient(135deg,#16a34a,#15803d)';
-    loginBtn.style.opacity = '1';
-}
+        // AUTHORIZED SUCCESS SEQUENCE
+        if (loginBtn) {
+            loginBtn.textContent = '✓ Identity Verified';
+            loginBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            loginBtn.style.opacity = '1';
+        }
 
-// ── Store result temporarily so TOTP step can use it after verification ──
-window._pendingAuthResult = result;
-window._pendingAuthPass   = pass;
-window._pendingAuthHash   = hash;   // needed for /verify-totp call
+        sessionStorage.setItem("vaultSessionToken", result.sessionToken);
+        sessionStorage.setItem("vaultSession", result.sessionToken);
 
-failedAttempts = 0;
+        resetInactivityTimer();
 
-// ── Slide step1 away → show TOTP step ──
-const step1 = document.getElementById("step1");
-step1.style.pointerEvents = "none";
-step1.classList.add("slide-up-exit");
+        window.masterPassword = result.secret ? String(result.secret) : String(pass);
 
-setTimeout(() => {
-    step1.style.display = "none";
-    document.getElementById("step-totp").style.display = "flex";
-    if (typeof startTOTPStep === "function") startTOTPStep(hash);
-}, 700);
+        if (result.secret) {
+            sessionStorage.setItem("vault_session_secret", result.secret);
+        }
+
+        window.VAULT_MODE = result.mode;
+        sessionStorage.setItem("vaultMode", result.mode);
+
+        if (window.VAULT_MODE !== "ADMIN") {
+            const shareGear = document.getElementById("share-gear");
+            if (shareGear) shareGear.style.display = "none";
+        }
+
+        masterPassword = window.masterPassword;
+        failedAttempts = 0;
+        sessionStartTime = new Date();
+
+        const step1 = document.getElementById("step1");
+        if (step1) {
+            step1.style.pointerEvents = "none";
+            step1.style.opacity = "0";
+            step1.style.transition = "opacity 0.3s ease";
+            
+            setTimeout(() => {
+                step1.style.display = "none";
+                const step2 = document.getElementById("step2");
+                if (step2) {
+                    step2.style.display = "flex";
+                    step2.style.opacity = "1";
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 300);
+        }
 
     } catch (e) {
-
         restoreLoginBtn();
         console.error(e);
-        showLoginError(
-            'Connection Error',
-            e.message || 'Could not connect to the secure backend. Please check your internet and try again.'
-        );
+        showLoginError('Connection Error', e.message || 'Fatal data stream pipeline disruption.');
     }
 }
-
 /* =========================
    STEP 2
 ========================= */
