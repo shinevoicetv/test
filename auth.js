@@ -344,21 +344,46 @@ async function extractPDFText(file) {
       fullText += layerText + "\n";
     } else {
       // Page is scanned — render to canvas and OCR with Tesseract
-      const viewport = page.getViewport({ scale: 2.0 }); // scale 2 = better OCR accuracy
-      const canvas = document.createElement("canvas");
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      const ctx = canvas.getContext("2d");
-      await page.render({ canvasContext: ctx, viewport }).promise;
+      try {
+        // Render at high scale for OCR accuracy
+        const MIN_OCR_WIDTH  = 800;
+        const MIN_OCR_HEIGHT = 200;
+        const baseViewport   = page.getViewport({ scale: 1.0 });
 
-      // Tesseract.js must be loaded: <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-      const { data: { text } } = await Tesseract.recognize(canvas, "eng");
-      fullText += text + "\n";
+        // Compute scale so the canvas always meets the minimum OCR dimensions
+        const scaleNeeded = Math.max(
+          2.0,
+          MIN_OCR_WIDTH  / baseViewport.width,
+          MIN_OCR_HEIGHT / baseViewport.height
+        );
+
+        const viewport = page.getViewport({ scale: scaleNeeded });
+        const canvas   = document.createElement("canvas");
+        canvas.width   = Math.ceil(viewport.width);
+        canvas.height  = Math.ceil(viewport.height);
+
+        const ctx = canvas.getContext("2d");
+        await page.render({ canvasContext: ctx, viewport }).promise;
+
+        // Safety guard: if canvas is still too small after scaling, skip OCR
+        if (canvas.width < 3 || canvas.height < 3) {
+          console.warn(`OCR skipped page ${i}: canvas too small (${canvas.width}x${canvas.height})`);
+          continue;
+        }
+
+        // Tesseract.js must be loaded: <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+        const { data: { text } } = await Tesseract.recognize(canvas, "eng", {
+          logger: () => {} // suppress internal progress logs
+        });
+        fullText += (text || "") + "\n";
+      } catch (ocrErr) {
+        console.warn(`OCR failed page ${i}:`, ocrErr);
+      }
     }
   }
 
   return fullText;
-       }
+}
 
 /* ===== GEMINI AI CHAT ===== */
 
@@ -555,9 +580,7 @@ async function submitTOTP() {
     showTOTPError(data.error || "Invalid code. Try again.");
     clearTOTPBoxes();
     focusFirstDigit();
-  }
-  } catch(err) { console.error(err); }  // closes try
-}  
+}
 /* ==========================================================
    PRODUCTION MERGED ENGINE: AI BACKGROUND INDEXING PIPELINE
 ========================================================== */
@@ -1458,7 +1481,7 @@ dash.classList.add(
 
             startInactivityMonitor();
 
-   setTimeout(() => listenForForceLogout(), 8000); // wait 8s for registration to complete
+   listenForForceLogout();
 
         },700);
 
@@ -1733,31 +1756,39 @@ async function extractFullPDFText(arrayBuffer) {
       // Scanned page — render canvas then OCR with Tesseract
       // Requires in your HTML: <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
       try {
-        const viewport = page.getViewport({ scale: 2.0 });
-        const canvas = document.createElement("canvas");
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        const ctx = canvas.getContext("2d");
-        
-        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-        
-        if (typeof Tesseract !== 'undefined') {
-          const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
-          if (text && text.trim().length > 10) {
-            fullText += text + "\n";
-          }
-        } else {
-          console.warn("AI Index: Scanned page detected, but Tesseract library is not loaded.");
+        // Compute scale so canvas always meets minimum OCR dimensions
+        const MIN_OCR_WIDTH  = 800;
+        const MIN_OCR_HEIGHT = 200;
+        const baseViewport   = page.getViewport({ scale: 1.0 });
+
+        const scaleNeeded = Math.max(
+          2.0,
+          MIN_OCR_WIDTH  / baseViewport.width,
+          MIN_OCR_HEIGHT / baseViewport.height
+        );
+
+        const viewport = page.getViewport({ scale: scaleNeeded });
+        const canvas   = document.createElement("canvas");
+        canvas.width   = Math.ceil(viewport.width);
+        canvas.height  = Math.ceil(viewport.height);
+
+        await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+
+        // Safety guard: skip if canvas is still impossibly small
+        if (canvas.width < 3 || canvas.height < 3) {
+          console.warn(`OCR skipped page ${i}: canvas too small (${canvas.width}x${canvas.height})`);
+          continue;
         }
+
+        const { data: { text } } = await Tesseract.recognize(canvas, "eng", {
+          logger: () => {} // suppress internal progress logs
+        });
+        fullText += (text || "") + "\n";
       } catch (ocrErr) {
-        console.warn(`AI Index: OCR processing failed on page ${i}`, ocrErr);
+        console.warn(`OCR failed page ${i}:`, ocrErr);
       }
     }
   }
-  return fullText;
-}
 
-// Ensure the inactivity loop check is safely active if configured elsewhere
-if (typeof listenForForceLogout === 'function') {
-    listenForForceLogout();
+  return fullText.trim();
 }
