@@ -21,8 +21,21 @@ function closePasswordManager() {
   document.getElementById('passwordManagerModal').style.display = 'none';
 }
 
+function togglePMPassword(buttonElement, inputId) {
+  const passwordInput = document.getElementById(inputId);
+  if (!passwordInput) return;
+
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    buttonElement.textContent = 'Hide';
+  } else {
+    passwordInput.type = 'password';
+    buttonElement.textContent = 'Show';
+  }
+}
+
 async function getAuthHeaders() {
-  // Check all potential session keys your app uses
+  // Check every token key variant your vault system might be assigning
   const token = sessionStorage.getItem('vaultSessionToken') || 
                 sessionStorage.getItem('vaultSession') || 
                 sessionStorage.getItem('sessionToken') || 
@@ -75,46 +88,47 @@ async function copyPMPassword(id) {
 async function renderPMList() {
   const container = document.getElementById('pm-entries-container'); 
   if (!container) {
-    console.error("Could not find an HTML element with id 'pm-entries-container'");
+    console.warn("Target element 'pm-entries-container' not found in HTML.");
     return;
   }
 
-  // 1. Fetch latest passwords from the worker
-  container.innerHTML = '<div style="text-align:center; padding:10px;">Loading passwords...</div>';
-  const entries = await loadPMEntries();
-  container.innerHTML = '';
+  container.innerHTML = '<div style="text-align:center; padding:12px; color:#64748b;">⏳ Fetching credentials...</div>';
+  
+  try {
+    const entries = await loadPMEntries();
+    container.innerHTML = '';
 
-  if (entries.length === 0) {
-    container.innerHTML = '<div style="text-align:center; color:#64748b; padding:10px;">No saved passwords found.</div>';
-    return;
+    if (!entries || entries.length === 0) {
+      container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:16px;">No saved passwords found.</div>';
+      return;
+    }
+
+    entries.forEach(entry => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding:10px 0; gap:10px;';
+      
+      row.innerHTML = `
+        <div style="flex-grow:1; min-width:0;">
+          <strong style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHTML(entry.site)}</strong>
+          <span style="font-size:12px; color:#64748b; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHTML(entry.username || 'No username')}</span>
+        </div>
+        <div style="display:flex; gap:6px; flex-shrink:0;">
+          <button onclick="copyPMPassword('${entry.id}')" style="padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1; background:#fff; cursor:pointer;">📋 Copy</button>
+          <button onclick="deletePMEntry('${entry.id}')" style="padding:6px 10px; border-radius:6px; border:none; background:#fee2e2; color:#ef4444; cursor:pointer;">🗑️ Delete</button>
+        </div>
+      `;
+      container.appendChild(row);
+    });
+  } catch (err) {
+    console.error("Failed to render password vault:", err);
+    container.innerHTML = '<div style="text-align:center; color:#ef4444; padding:12px;">❌ Error loading vault list.</div>';
   }
-
-  // 2. Map items out into HTML elements
-  entries.forEach(entry => {
-    const row = document.createElement('div');
-    row.className = 'pm-entry-row'; // Style this in your CSS
-    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding:8px 0;';
-    
-    row.innerHTML = `
-      <div>
-        <strong style="display:block;">${escapeHTML(entry.site)}</strong>
-        <span style="font-size:12px; color:#64748b;">${escapeHTML(entry.username || 'No username')}</span>
-      </div>
-      <div>
-        <button onclick="copyPMPassword('${entry.id}')" style="padding:4px 8px; margin-right:4px;">📋 Copy</button>
-        <button onclick="deletePMEntry('${entry.id}')" style="padding:4px 8px; color:#ef4444;">🗑️ Delete</button>
-      </div>
-    `;
-    container.appendChild(row);
-  });
 }
 
-// Simple helper function to prevent XSS vulnerability injection
+// XSS Sanitizer Helper
 function escapeHTML(str) {
   if (!str) return '';
-  return str.replace(/[&<>'"]/g, 
-    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-  );
+  return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
 }
 
 async function deletePMEntry(id) {
