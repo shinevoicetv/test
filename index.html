@@ -49,130 +49,362 @@ href="favicon.png">
    
 <link rel="stylesheet" href="style.css">
 <style>
-    /* CSS System Variables matching Vault Framework */
-    :root {
-        --bg-dark: #090d16;
-        --card-bg: rgba(30, 41, 59, 0.75);
-        --card-inner: rgba(38, 38, 74, 0.5);
-        --border-color: rgba(58, 58, 106, 0.6);
-        --text-main: #dde0ff;
-        --text-muted: #94a3b8;
-        --accent-primary: #4285f4;
-        --accent-gradient: linear-gradient(135deg, #4285f4, #6a0dad);
-        --danger: #ef4444;
-        --success: #10b981;
-        --glow: rgba(66, 133, 244, 0.2);
-    }
-
-    @keyframes fadeInUp {
-        from { transform: translateY(16px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-
-    /* Base Body Overhaul to avoid viewport clipping */
-    #step1.overlay {
-        background-color: var(--bg-dark) !important;
-        background-image: 
-            radial-gradient(circle at 15% 15%, rgba(66, 133, 244, 0.08) 0%, transparent 45%),
-            radial-gradient(circle at 85% 85%, rgba(106, 13, 173, 0.08) 0%, transparent 45%) !important;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        padding: 24px 16px;
-        overflow-y: auto; /* Allows natural scrolling if screen is tiny */
-        min-height: 100vh;
-        box-sizing: border-box;
-    }
-
-    /* Main Responsive Container */
-    .login-wrapper {
-        width: 100%;
-        max-width: 450px;
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 20px;
-        padding: 30px 24px;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-        animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        margin-bottom: 20px;
-    }
-
-    .header-section { text-align: center; margin-bottom: 24px; }
-    .main-logo-container {
-        width: 56px; height: 56px; background: var(--card-inner); border: 1px solid var(--border-color);
-        border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 12px auto;
-    }
-
-    h1 { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: 0.5px; margin-bottom: 4px; }
-    .subtitle { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
-
-    /* Forms Elements */
-    .form-group { margin-bottom: 16px; position: relative; text-align: left; }
-    .form-group label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.75px; }
+/* ==========================================================
+   PRODUCTION LIGHT MODE DESIGN SYSTEM & BREAKPOINTS
+========================================================== */
+:root {
+    /* Pure Crisp Light Canvas Backgrounds */
+    --bg-dark: #ffffff; 
+    --card-bg: rgba(248, 250, 252, 0.9); /* Premium Slate-50 tint card structure */
+    --card-inner: #ffffff;               /* Pure white base inside inputs */
+    --border-color: #cbd5e1;             /* Clean border definition line */
     
-    .input-wrapper { position: relative; }
-    .input-wrapper input {
-        width: 100%; background: var(--card-inner); border: 1px solid var(--border-color); color: #fff; padding: 12px 14px; border-radius: 10px; font-size: 14px; outline: none; transition: all 0.2s ease;
-    }
-    .input-wrapper input:focus { border-color: var(--accent-primary); background: rgba(38, 38, 74, 0.7); box-shadow: 0 0 0 3px var(--glow); }
-    .password-toggle { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 16px; user-select: none; opacity: 0.6; }
-
-    /* New Password Indicator Bars */
-    .strength-meter { display: flex; gap: 4px; margin-top: 6px; }
-    .strength-bar { height: 4px; flex: 1; background: rgba(255,255,255,0.1); border-radius: 2px; transition: background 0.3s; }
-
-    /* Fluid Checkbox/Radio Grid Blueprint */
-    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-    .custom-checkbox, .custom-radio {
-        display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-main); cursor: pointer; font-weight: 600; padding: 8px 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid transparent; border-radius: 8px; transition: all 0.2s;
-    }
-    .custom-checkbox:hover, .custom-radio:hover { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.08); }
-    .custom-checkbox input, .custom-radio input { cursor: pointer; accent-color: var(--accent-primary); width: 14px; height: 14px; }
-
-    /* Quick Level Selectors */
-    .security-modes { background: var(--card-inner); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; margin-bottom: 16px; }
-    .security-modes .section-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
-    .radio-group { display: flex; flex-direction: column; gap: 6px; }
-
-    /* New Utility Info Strip */
-    .meta-utility-strip {
-        background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255,255,255,0.03); border-radius: 10px; padding: 10px 12px; margin-bottom: 20px; font-size: 11px; color: var(--text-muted); display: flex; flex-direction: column; gap: 6px; text-align: left;
-    }
-    .meta-item { display: flex; justify-content: space-between; align-items: center; }
-    .meta-val { color: #fff; font-weight: 600; }
-
-    /* System Status Row Grid Replacing standard blocks */
-    .status-container {
-        width: 100%; max-width: 450px; display: grid; grid-template-columns: 1fr; gap: 12px; opacity: 0; animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards; margin-bottom: 24px;
-    }
-    .status-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; text-align: left; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-    .status-card h3 { font-size: 11px; font-weight: 800; color: #fff; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
-    .status-list { list-style: none; font-size: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0; }
-    .status-list li { display: flex; align-items: center; gap: 6px; }
-
-    .btn-primary {
-        width: 100%; background: var(--accent-gradient); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 800; font-size: 14px; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease;
-    }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3); }
-
-    .watermark { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: rgba(255, 255, 255, 0.15); text-align: center; margin-top: auto; }
-
-    /* ===================================================
-       RESPONSIVE BREAKPOINTS (Desktop, Tablet, Mobile)
-       =================================================== */
-    @media (min-width: 768px) {
-        #step1.overlay { justify-content: center; padding: 40px 20px; }
-        .login-wrapper { padding: 36px; }
-        .status-container { grid-template-columns: 1fr; }
-    }
+    /* Strong Contrast Typography */
+    --text-main: #0f172a;                /* Dark charcoal for standard titles/fields */
+    --text-muted: #64748b;               /* Deep slate for subtitles & secondary items */
     
-    @media (max-height: 700px) {
-        #step1.overlay { justify-content: flex-start; }
-        .login-wrapper { padding: 20px; margin-bottom: 12px; }
+    /* High-Fidelity UI Interactive States */
+    --accent-primary: #2563eb;
+    --accent-gradient: linear-gradient(135deg, #2563eb, #4f46e5);
+    --danger: #dc2626;
+    --success: #16a34a;
+    --glow: rgba(37, 99, 235, 0.1);
+}
+
+@keyframes fadeInUp {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Base Body Framework Overhaul (Guards against Viewport Clipping) */
+#step1.overlay {
+    background-color: var(--bg-dark) !important;
+    background-image: none !important; /* Strips old dark environment glowing shapes */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 24px 16px;
+    overflow-y: auto; /* Natural overflow axis scroll for small mobile screens */
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+/* Fluid Layout Wrapper Container */
+.login-wrapper {
+    width: 100%;
+    max-width: 450px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 30px 24px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); /* Sophisticated light shadow */
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    margin-bottom: 20px;
+}
+
+.header-section { 
+    text-align: center; 
+    margin-bottom: 24px; 
+}
+
+.main-logo-container {
+    width: 56px; 
+    height: 56px; 
+    background: var(--card-inner); 
+    border: 1px solid var(--border-color);
+    border-radius: 14px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 28px; 
+    margin: 0 auto 12px auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+h1 { 
+    font-size: 22px; 
+    font-weight: 800; 
+    color: var(--text-main) !important; 
+    letter-spacing: 0.5px; 
+    margin-bottom: 4px; 
+}
+
+.subtitle { 
+    font-size: 13px; 
+    color: var(--text-muted); 
+    line-height: 1.4; 
+}
+
+/* Interactive Input Clusters */
+.form-group { 
+    margin-bottom: 16px; 
+    position: relative; 
+    text-align: left; 
+}
+
+.form-group label { 
+    display: block; 
+    font-size: 11px; 
+    font-weight: 700; 
+    color: var(--text-muted); 
+    margin-bottom: 6px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.75px; 
+}
+
+.input-wrapper { 
+    position: relative; 
+}
+
+.input-wrapper input {
+    width: 100%; 
+    background: var(--card-inner) !important; 
+    border: 1px solid var(--border-color) !important; 
+    color: var(--text-main) !important; 
+    padding: 12px 14px; 
+    border-radius: 10px; 
+    font-size: 14px; 
+    outline: none; 
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.input-wrapper input:focus { 
+    border-color: var(--accent-primary) !important; 
+    box-shadow: 0 0 0 3px var(--glow); 
+}
+
+.input-wrapper input::placeholder {
+    color: #94a3b8;
+}
+
+.password-toggle { 
+    position: absolute; 
+    right: 14px; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    cursor: pointer; 
+    font-size: 16px; 
+    user-select: none; 
+    opacity: 0.7; 
+}
+
+/* Live Password Strength Bars */
+.strength-meter { 
+    display: flex; 
+    gap: 4px; 
+    margin-top: 6px; 
+}
+
+.strength-bar { 
+    height: 4px; 
+    flex: 1; 
+    background: rgba(15, 23, 42, 0.08); 
+    border-radius: 2px; 
+    transition: background 0.3s; 
+}
+
+/* Fluid Parameter Options Selection Grids */
+.options-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 10px; 
+    margin-bottom: 20px; 
+}
+
+.custom-checkbox, .custom-radio {
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    font-size: 12px; 
+    color: var(--text-main); 
+    cursor: pointer; 
+    font-weight: 600; 
+    padding: 8px 10px; 
+    background: #ffffff; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 8px; 
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.custom-checkbox:hover, .custom-radio:hover { 
+    background: #f8fafc; 
+    border-color: #cbd5e1; 
+}
+
+.custom-checkbox input, .custom-radio input { 
+    cursor: pointer; 
+    accent-color: var(--accent-primary); 
+    width: 14px; 
+    height: 14px; 
+}
+
+/* Quick Enforcement Level Sub-Selectors */
+.security-modes { 
+    background: #ffffff; 
+    border: 1px solid var(--border-color); 
+    border-radius: 12px; 
+    padding: 12px; 
+    margin-bottom: 16px; 
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.security-modes .section-title { 
+    font-size: 11px; 
+    font-weight: 700; 
+    color: var(--text-muted); 
+    text-transform: uppercase; 
+    margin-bottom: 8px; 
+    letter-spacing: 0.5px; 
+    text-align: left;
+}
+
+.radio-group { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 6px; 
+}
+
+/* Clean Info Utility Strip */
+.meta-utility-strip {
+    background: #ffffff; 
+    border: 1px solid var(--border-color); 
+    border-radius: 10px; 
+    padding: 10px 12px; 
+    margin-bottom: 20px; 
+    font-size: 11px; 
+    color: var(--text-muted); 
+    display: flex; 
+    flex-direction: column; 
+    gap: 6px; 
+    text-align: left;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.meta-item { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+
+.meta-val { 
+    color: var(--text-main) !important; 
+    font-weight: 600; 
+}
+
+/* Minimal Environment Diagnostics Container */
+.status-container {
+    width: 100%; 
+    max-width: 450px; 
+    display: grid; 
+    grid-template-columns: 1fr; 
+    gap: 12px; 
+    opacity: 0; 
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards; 
+    margin-bottom: 24px; 
+}
+
+.status-card { 
+    background: var(--card-bg); 
+    border: 1px solid var(--border-color); 
+    border-radius: 14px; 
+    padding: 14px; 
+    text-align: left; 
+}
+
+.status-card h3 { 
+    font-size: 11px; 
+    font-weight: 800; 
+    color: var(--text-main); 
+    margin-bottom: 8px; 
+    text-transform: uppercase; 
+    border-bottom: 1px solid var(--border-color); 
+    padding-bottom: 4px; 
+}
+
+.status-list { 
+    list-style: none; 
+    font-size: 12px; 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 6px; 
+    padding: 0; 
+    margin: 0;
+}
+
+.status-list li { 
+    display: flex; 
+    align-items: center; 
+    gap: 6px; 
+    color: var(--text-main);
+}
+
+/* Master Primary Trigger Button */
+.btn-primary {
+    width: 100%; 
+    background: var(--accent-gradient); 
+    color: #ffffff !important; 
+    border: none; 
+    padding: 14px; 
+    border-radius: 12px; 
+    font-weight: 800; 
+    font-size: 14px; 
+    letter-spacing: 0.5px; 
+    cursor: pointer; 
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:hover { 
+    transform: translateY(-1px); 
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3); 
+}
+
+.btn-primary:disabled {
+    background: #cbd5e1;
+    color: #94a3b8 !important;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Framework Footer Branding Signature */
+.watermark { 
+    font-size: 10px; 
+    font-weight: 700; 
+    letter-spacing: 2px; 
+    color: rgba(15, 23, 42, 0.25); 
+    text-align: center; 
+    margin-top: auto; 
+    padding-top: 16px;
+}
+
+/* ==========================================================
+   BREAKPOINTS (Responsive Scaling Constraints)
+========================================================== */
+@media (min-width: 768px) {
+    #step1.overlay { 
+        justify-content: center; /* Centers layout item cluster on desktop */
+        padding: 40px 20px; 
     }
+    .login-wrapper { 
+        padding: 36px; 
+    }
+}
+
+@media (max-height: 720px) {
+    #step1.overlay { 
+        justify-content: flex-start; /* Prevents push overflow behaviors on short windows */
+    }
+    .login-wrapper { 
+        padding: 20px 24px; 
+        margin-bottom: 12px; 
+    }
+}
 </style>
 
    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
