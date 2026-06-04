@@ -201,7 +201,6 @@ href="favicon.png">
 ========================= -->
 
 <div id="step1" class="overlay">
-
     <div class="login-wrapper">
         <div class="header-section">
             <div class="main-logo-container">🔐</div>
@@ -241,58 +240,29 @@ href="favicon.png">
             </div>
 
             <div class="options-grid">
-                <label class="custom-checkbox">
-                    <input type="checkbox" id="req-otp">
-                    <span>Request OTP</span>
-                </label>
-                <label class="custom-checkbox">
-                    <input type="checkbox" id="trust-device">
-                    <span>Trust (14 days)</span>
-                </label>
-                <label class="custom-checkbox">
-                    <input type="checkbox" id="keep-session" checked>
-                    <span>Keep Session</span>
-                </label>
-                <label class="custom-checkbox">
-                    <input type="checkbox" id="private-mode">
-                    <span>Private View</span>
-                </label>
+                <label class="custom-checkbox"><input type="checkbox" id="req-otp"><span>Request OTP</span></label>
+                <label class="custom-checkbox"><input type="checkbox" id="trust-device"><span>Trust (14 days)</span></label>
+                <label class="custom-checkbox"><input type="checkbox" id="keep-session" checked><span>Keep Session</span></label>
+                <label class="custom-checkbox"><input type="checkbox" id="private-mode"><span>Private View</span></label>
             </div>
 
             <div class="security-modes">
                 <div class="section-title">Enforcement Mode</div>
                 <div class="radio-group">
-                    <label class="custom-radio">
-                        <input type="radio" name="sec-mode" value="normal" checked onclick="updateSecurityState('normal')">
-                        <span>Standard Node Login</span>
-                    </label>
-                    <label class="custom-radio">
-                        <input type="radio" name="sec-mode" value="high" onclick="updateSecurityState('high')">
-                        <span>Elevated Security Verification</span>
-                    </label>
-                    <label class="custom-radio">
-                        <input type="radio" name="sec-mode" value="emergency" onclick="updateSecurityState('emergency')">
-                        <span style="color: var(--danger); font-weight:700;">Emergency Immediate Lock</span>
-                    </label>
+                    <label class="custom-radio"><input type="radio" name="sec-mode" value="normal" checked onclick="updateSecurityState('normal')"><span>Standard Node Login</span></label>
+                    <label class="custom-radio"><input type="radio" name="sec-mode" value="high" onclick="updateSecurityState('high')"><span>Elevated Verification</span></label>
+                    <label class="custom-radio"><input type="radio" name="sec-mode" value="emergency" onclick="updateSecurityState('emergency')"><span style="color:var(--danger);font-weight:700;">Emergency Immediate Lock</span></label>
                 </div>
             </div>
 
             <div class="meta-utility-strip">
-                <div class="meta-item">
-                    <span>Access Node Point:</span>
-                    <span class="meta-val" style="color:var(--accent-primary);">192.168.1.84 (Pune Node)</span>
-                </div>
-                <div class="meta-item">
-                    <span>Session Lifecycle:</span>
-                    <span class="meta-val" id="lifecycleTimer" style="color:#fbbf24;">10:00 mins remaining</span>
-                </div>
+                <div class="meta-item"><span>Access Node Point:</span><span class="meta-val" style="color:var(--accent-primary);">192.168.1.84</span></div>
+                <div class="meta-item"><span>Session Lifecycle:</span><span class="meta-val" id="lifecycleTimer" style="color:#fbbf24;">10:00 mins remaining</span></div>
             </div>
 
             <div style="display:flex; flex-direction:column; gap:10px;">
-                <button class="btn-primary" id="submitBtn" onclick="showStep2()">
-                    CONTINUE SECURELY
-                </button>
-                <button onclick="alert('Connecting encrypted FIDO2 webauthn device hardware layer...')" style="border:1px solid var(--border-color); background:transparent; color:var(--text-main); padding:11px; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer;">
+                <button class="btn-primary" id="submitBtn" onclick="showStep2()">CONTINUE SECURELY</button>
+                <button onclick="alert('Connecting encrypted hardware security token...')" style="border:1px solid var(--border-color); background:transparent; color:var(--text-main); padding:11px; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer;">
                     🔑 USE HARDWARE SECURITY PASSKEY
                 </button>
             </div>
@@ -303,16 +273,58 @@ href="favicon.png">
         <div class="status-card">
             <h3>Environment Security Parameters</h3>
             <ul class="status-list">
-                <li style="color: var(--success);">✓ End-to-End Encryption</li>
-                <li style="color: var(--success);">✓ Device Sandbox Valid</li>
-                <li style="color: var(--success);">✓ Threat Guards Armed</li>
-                <li style="color: var(--success);">✓ Global Sync Normal</li>
+                <li style="color:var(--success);">✓ End-to-End Encryption</li>
+                <li style="color:var(--success);">✓ Device Sandbox Valid</li>
+                <li style="color:var(--success);">✓ Threat Guards Armed</li>
+                <li style="color:var(--success);">✓ Global Sync Normal</li>
             </ul>
         </div>
     </div>
-
-    <div class="watermark">AUTHORIZED DISPATCH FRAMEWORK • SHINEIL KEITH MATHIAS</div>
 </div>
+
+<script>
+    function togglePassView() {
+        const pField = document.getElementById("vault-pass");
+        const eyeIcon = document.getElementById("toggleEye");
+        if (pField.type === "password") { pField.type = "text"; eyeIcon.textContent = "🙈"; } 
+        else { pField.type = "password"; eyeIcon.textContent = "👁️"; }
+    }
+
+    function testPassStrength() {
+        const pass = document.getElementById("vault-pass").value;
+        const m1 = document.getElementById("meter1");
+        const m2 = document.getElementById("meter2");
+        const m3 = document.getElementById("meter3");
+        m1.style.background = m2.style.background = m3.style.background = "rgba(255,255,255,0.1)";
+        if (pass.length === 0) return;
+        if (pass.length > 0) m1.style.background = "var(--danger)";
+        if (pass.length >= 6) m2.style.background = "#f59e0b";
+        if (pass.length >= 10 && /[A-Z]/.test(pass) && /[0-9]/.test(pass)) m3.style.background = "var(--success)";
+    }
+
+    function updateSecurityState(mode) {
+        const submitBtn = document.getElementById("submitBtn");
+        if (!submitBtn) return;
+        if (mode === 'emergency') {
+            submitBtn.style.background = 'var(--danger)';
+            submitBtn.textContent = 'ENGAGE EMERGENCY PURGE';
+        } else if (mode === 'high') {
+            submitBtn.style.background = 'linear-gradient(135deg, #6a0dad, #4c1d95)';
+            submitBtn.textContent = 'ELEVATED SECURE LOGIN';
+        } else {
+            submitBtn.style.background = 'var(--accent-gradient)';
+            submitBtn.textContent = 'CONTINUE SECURELY';
+        }
+    }
+
+    let mins = 10, secs = 0;
+    setInterval(() => {
+        const display = document.getElementById("lifecycleTimer");
+        if (!display) return;
+        if (secs === 0) { if (mins === 0) return; mins--; secs = 59; } else { secs--; }
+        display.textContent = `${mins}:${secs < 10 ? '0' + secs : secs} mins remaining`;
+    }, 1000);
+</script>
 
 <!-- =========================
      STEP 2
@@ -2092,62 +2104,5 @@ Scan QR to open secure link
 #ai-messages::-webkit-scrollbar { width:4px; }
 #ai-messages::-webkit-scrollbar-thumb { background:#3a3a6a; border-radius:4px; }
 </style>
-<script>
-    // Visibility Field Toggle logic
-    function togglePassView() {
-        const pField = document.getElementById("vault-pass");
-        const eyeIcon = document.getElementById("toggleEye");
-        if (pField.type === "password") {
-            pField.type = "text";
-            eyeIcon.textContent = "🙈";
-        } else {
-            pField.type = "password";
-            eyeIcon.textContent = "👁️";
-        }
-    }
-
-    // Dynamic Live Strength Indicator logic
-    function testPassStrength() {
-        const pass = document.getElementById("vault-pass").value;
-        const m1 = document.getElementById("meter1");
-        const m2 = document.getElementById("meter2");
-        const m3 = document.getElementById("meter3");
-        
-        // Reset meters
-        m1.style.background = m2.style.background = m3.style.background = "rgba(255,255,255,0.1)";
-        
-        if (pass.length === 0) return;
-        
-        if (pass.length > 0) m1.style.background = "var(--danger)";
-        if (pass.length >= 6) m2.style.background = "#f59e0b";
-        if (pass.length >= 10 && /[A-Z]/.test(pass) && /[0-9]/.test(pass)) m3.style.background = "var(--success)";
-    }
-
-    // Interactive button state adjustments
-    function updateSecurityState(mode) {
-        const submitBtn = document.getElementById("submitBtn");
-        if(mode === 'emergency') {
-            submitBtn.style.background = 'var(--danger)';
-            submitBtn.textContent = 'ENGAGE EMERGENCY PURGE';
-        } else if (mode === 'high') {
-            submitBtn.style.background = 'linear-gradient(135deg, #6a0dad, #4c1d95)';
-            submitBtn.textContent = 'ELEVATED SECURE LOGIN';
-        } else {
-            submitBtn.style.background = 'var(--accent-gradient)';
-            submitBtn.textContent = 'CONTINUE SECURELY';
-        }
-    }
-
-    // Live countdown emulation loop
-    let minutes = 10, seconds = 0;
-    setInterval(() => {
-        if(seconds === 0) {
-            if(minutes === 0) return;
-            minutes--; seconds = 59;
-        } else { seconds--; }
-        document.getElementById("lifecycleTimer").textContent = 
-            `${minutes}:${seconds < 10 ? '0' + seconds : seconds} mins remaining`;
-    }, 1000);
-</script>
 </body>
 </html>
