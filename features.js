@@ -8,6 +8,14 @@
 // ============ PASSWORD MANAGER ============
 const WORKER_URL = 'https://backend.shinumaths989.workers.dev'; // your worker URL
 
+function openPasswordManager() {
+  document.getElementById('passwordManagerModal').style.display = 'flex';
+  renderPMList();
+}
+function closePasswordManager() {
+  document.getElementById('passwordManagerModal').style.display = 'none';
+}
+
 async function getAuthHeaders() {
   const token = sessionStorage.getItem('sessionToken') || localStorage.getItem('sessionToken') || '';
   return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
