@@ -1115,7 +1115,7 @@ async function sendAIMessage() {
   aiChatHistory.push({ role: 'user', parts: [{ text: question }] });
 
   showAITyping(true);
-}
+   
   try {
     const token = sessionStorage.getItem('vaultSessionToken') ||
                   sessionStorage.getItem('vaultSession') ||
@@ -1130,7 +1130,7 @@ async function sendAIMessage() {
       body: JSON.stringify({ question })
     });
 
-     const data = await response.json();
+     const data = await res.json();
      
     if (data.success && data.reply) {
   // Clear any existing thinking indicators or text
@@ -1173,6 +1173,17 @@ async function sendAIMessage() {
 } else {
   // Catch fallback instances where an operational error code returns from the server
   aiResponseText.innerText = data.error || "An error occurred fetching detailed vault profiles.";
+}
+
+} catch (e) {
+
+    console.error(e);
+
+    aiResponseText.innerText =
+        "An error occurred fetching detailed vault profiles.";
+
+}
+
 }
 
 function appendUserBubble(text) {
