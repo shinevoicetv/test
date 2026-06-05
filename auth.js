@@ -1378,7 +1378,7 @@ async function showStep2() {
             return;
         }
 
-        // AUTHORIZED — stash result and proceed to TOTP step
+        // AUTHORIZED — stash result and proceed
         if (loginBtn) {
             loginBtn.textContent = '✓ Identity Verified';
             loginBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
@@ -1387,24 +1387,70 @@ async function showStep2() {
 
         failedAttempts = 0;
 
-        // Stash auth data — applied fully only after TOTP passes
+        // Stash auth data — applied fully only after TOTP passes (or immediately if OTP skipped)
         window._pendingAuthResult = result;
         window._pendingAuthPass   = pass;
         window._pendingAuthHash   = await hashPassword(pass);
 
-        // Route to TOTP step
+        const otpRequested = document.getElementById("req-otp") && document.getElementById("req-otp").checked;
+
         const step1 = document.getElementById("step1");
-        if (step1) {
-            step1.style.pointerEvents = "none";
-            step1.style.opacity = "0";
-            step1.style.transition = "opacity 0.3s ease";
-            setTimeout(() => {
-                step1.style.display = "none";
+
+        if (otpRequested) {
+            // Route to TOTP step — session applied only after TOTP verification
+            if (step1) {
+                step1.style.pointerEvents = "none";
+                step1.style.opacity = "0";
+                step1.style.transition = "opacity 0.3s ease";
+                setTimeout(() => {
+                    step1.style.display = "none";
+                    startTOTPStep(window._pendingAuthHash);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 300);
+            } else {
                 startTOTPStep(window._pendingAuthHash);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }, 300);
+            }
         } else {
-            startTOTPStep(await hashPassword(pass));
+            // Skip TOTP — apply session immediately and go to Step 2 (Declaration)
+            sessionStorage.setItem("vaultSessionToken", result.sessionToken);
+            sessionStorage.setItem("vaultSession",       result.sessionToken);
+
+            resetInactivityTimer();
+
+            window.masterPassword = result.secret ? String(result.secret) : String(pass || "");
+            if (result.secret) sessionStorage.setItem("vault_session_secret", result.secret);
+
+            window.VAULT_MODE = result.mode;
+            sessionStorage.setItem("vaultMode", result.mode);
+
+            if (window.VAULT_MODE !== "ADMIN") {
+                const shareGear = document.getElementById("share-gear");
+                if (shareGear) shareGear.style.display = "none";
+            }
+
+            masterPassword = window.masterPassword;
+            sessionStartTime = new Date();
+
+            // Clean up temp storage
+            window._pendingAuthResult = null;
+            window._pendingAuthPass   = null;
+            window._pendingAuthHash   = null;
+
+            // Transition to Step 2 (Legal Declaration)
+            if (step1) {
+                step1.style.pointerEvents = "none";
+                step1.style.opacity = "0";
+                step1.style.transition = "opacity 0.3s ease";
+                setTimeout(() => {
+                    step1.style.display = "none";
+                    const step2 = document.getElementById("step2");
+                    if (step2) { step2.style.display = "flex"; step2.style.opacity = "1"; }
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 300);
+            } else {
+                const step2 = document.getElementById("step2");
+                if (step2) { step2.style.display = "flex"; step2.style.opacity = "1"; }
+            }
         }
 
     } catch (e) {
