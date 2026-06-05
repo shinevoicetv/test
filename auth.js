@@ -1911,5 +1911,3 @@ async function extractFullPDFText(arrayBuffer) {
 
   return fullText.trim();
 }
-  }
-}
