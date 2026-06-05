@@ -1105,6 +1105,38 @@ function chipAsk(q) {
   sendAIMessage();
 }
 
+function addSpeakButton(messageElement) {
+    const btn = document.createElement("button");
+    btn.textContent = "🔊 Listen";
+    btn.style.cssText = `
+        margin-top: 8px;
+        background: none;
+        border: 1px solid var(--accent, #6ee7f7);
+        color: var(--accent, #6ee7f7);
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 11px;
+        cursor: pointer;
+        display: block;
+    `;
+    btn.onclick = () => {
+        const text = messageElement.innerText.replace(/\*\*/g, "");
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "en-IN";
+        utterance.rate = 0.95;
+        utterance.pitch = 1;
+        if (speechSynthesis.speaking) {
+            speechSynthesis.cancel();
+            btn.textContent = "🔊 Listen";
+            return;
+        }
+        utterance.onstart = () => btn.textContent = "⏹ Stop";
+        utterance.onend = () => btn.textContent = "🔊 Listen";
+        speechSynthesis.speak(utterance);
+    };
+    messageElement.parentElement.appendChild(btn);
+}
+
 async function sendAIMessage() {
   const input = document.getElementById('ai-input');
   const question = input.value.trim();
@@ -1182,6 +1214,11 @@ async function sendAIMessage() {
 
     } else {
       appendAIBubble(data.error || "An error occurred fetching detailed vault profiles.");
+       utterance.onend = () => {
+    btn.textContent = "🔊 Listen";
+};
+// After word-by-word print finishes:
+addSpeakButton(replyTarget);
     }
 
   } catch (e) {
