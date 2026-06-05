@@ -584,7 +584,7 @@ async function submitTOTP() {
   if (btn) { btn.textContent = "Verifying..."; btn.disabled = true; }
 
   try {
-    const BACKEND = window.BACKEND_URL || "https://your-worker.workers.dev"; // ← update this
+    const BACKEND = window.BACKEND_URL || "https://backend.shinumaths989.workers.dev"; // ← update this
 
     const res = await fetch(`${BACKEND}/verify-totp`, {
       method: "POST",
