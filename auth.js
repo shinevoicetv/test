@@ -1115,7 +1115,7 @@ async function sendAIMessage() {
   aiChatHistory.push({ role: 'user', parts: [{ text: question }] });
 
   showAITyping(true);
-
+]
   try {
     const token = sessionStorage.getItem('vaultSessionToken') ||
                   sessionStorage.getItem('vaultSession') ||
