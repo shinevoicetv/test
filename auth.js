@@ -1181,14 +1181,20 @@ async function sendAIMessage() {
 
       const replyTarget = wrap.querySelector('[id^="ai-reply-target-"]');
 
+      // Pre-process markdown so bold and line breaks render as HTML
+      const rawReply = data.reply
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // bold
+        .replace(/\n\n/g, '<br><br>')                       // paragraph breaks
+        .replace(/\n/g, '<br>');                            // single line breaks
+
       // Split text into words while preserving whitespace
-      const words = data.reply.split(/(\s+)/);
+      const words = rawReply.split(/(\s+)/);
       let wordIndex = 0;
 
       function printWordByWord() {
         if (wordIndex < words.length) {
           const span = document.createElement("span");
-          span.innerText = words[wordIndex];
+          span.innerHTML = words[wordIndex]; // innerHTML so HTML tags render
 
           // Hardware-accelerated fade-in per word
           span.style.opacity = "0";
@@ -1207,6 +1213,9 @@ async function sendAIMessage() {
           wordIndex++;
           msgs.scrollTop = msgs.scrollHeight;
           setTimeout(printWordByWord, 25);
+        } else {
+          // Animation complete — add the 🔊 Listen button
+          addSpeakButton(replyTarget);
         }
       }
 
@@ -1214,11 +1223,6 @@ async function sendAIMessage() {
 
     } else {
       appendAIBubble(data.error || "An error occurred fetching detailed vault profiles.");
-       utterance.onend = () => {
-    btn.textContent = "🔊 Listen";
-};
-// After word-by-word print finishes:
-addSpeakButton(replyTarget);
     }
 
   } catch (e) {
