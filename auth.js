@@ -597,8 +597,8 @@ async function submitTOTP() {
     if (data.success) {
     stopTOTPCountdown();
 
-    // ── Restore everything the old success block set ──
-    const result = data;           // /verify-totp returns same fields as /get-secret
+    // ── Apply session data from the verified response ──────────────────
+    const result = data;
     const pass   = window._pendingAuthPass;
 
     sessionStorage.setItem("vaultSessionToken", result.sessionToken);
@@ -606,22 +606,25 @@ async function submitTOTP() {
 
     resetInactivityTimer();
 
-    window.masterPassword = result.secret ? String(result.secret) : String(pass);
+    window.masterPassword = result.secret ? String(result.secret) : String(pass || "");
     if (result.secret) sessionStorage.setItem("vault_session_secret", result.secret);
 
     window.VAULT_MODE = result.mode;
     sessionStorage.setItem("vaultMode", result.mode);
 
     if (window.VAULT_MODE !== "ADMIN") {
-        document.getElementById("share-gear").style.display = "none";
+        const shareGear = document.getElementById("share-gear");
+        if (shareGear) shareGear.style.display = "none";
     }
 
     masterPassword = window.masterPassword;
     sessionStartTime = new Date();
 
-    // ── Hide TOTP, show step2 (Legal Declaration) — same flow as before ──
+    // ── Hide TOTP, show step2 (Legal Declaration) ──────────────────────
     document.getElementById("step-totp").style.display = "none";
-    document.getElementById("step2").style.display = "flex";
+    const step2 = document.getElementById("step2");
+    if (step2) { step2.style.display = "flex"; step2.style.opacity = "1"; }
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
     // Clean up temp storage
     window._pendingAuthResult = null;
@@ -630,6 +633,7 @@ async function submitTOTP() {
 
     } else {
       showTOTPError(data.error || "Invalid code. Try again.");
+      if (btn) { btn.textContent = "VERIFY CODE"; btn.disabled = false; }
       clearTOTPBoxes();
       focusFirstDigit();
     }
@@ -1131,58 +1135,62 @@ async function sendAIMessage() {
     });
 
      const data = await res.json();
-     
+
+    showAITyping(false);
+
     if (data.success && data.reply) {
-  // Clear any existing thinking indicators or text
-  aiResponseText.innerHTML = ""; 
+      // Create the AI bubble and animate words into it
+      const msgs = document.getElementById('ai-messages');
+      const wrap = document.createElement('div');
+      wrap.className = 'ai-msg-ai-wrap';
+      wrap.innerHTML = `<div class="ai-gem-avatar">✦</div><div class="ai-msg-ai" id="ai-reply-target-${Date.now()}"></div>`;
+      msgs.appendChild(wrap);
+      msgs.scrollTop = msgs.scrollHeight;
 
-  // Split text into individual words while preserving whitespace structures
-  const words = data.reply.split(/(\s+)/);
-  let wordIndex = 0;
+      const replyTarget = wrap.querySelector('[id^="ai-reply-target-"]');
 
-  function printWordByWord() {
-    if (wordIndex < words.length) {
-      const span = document.createElement("span");
-      span.innerText = words[wordIndex];
-      
-      // Apply immediate inline styles for hardware-accelerated fade transitions
-      span.style.opacity = "0";
-      span.style.filter = "blur(3px)";
-      span.style.transition = "opacity 0.2s ease-out, filter 0.2s ease-out";
-      span.style.display = "inline-block";
-      span.style.whiteSpace = "pre-wrap"; // Maintains syntax indentation & newlines
+      // Split text into words while preserving whitespace
+      const words = data.reply.split(/(\s+)/);
+      let wordIndex = 0;
 
-      aiResponseText.appendChild(span);
+      function printWordByWord() {
+        if (wordIndex < words.length) {
+          const span = document.createElement("span");
+          span.innerText = words[wordIndex];
 
-      // Trigger the transition immediately on the next animation frame
-      requestAnimationFrame(() => {
-        span.style.opacity = "1";
-        span.style.filter = "blur(0px)";
-      });
+          // Hardware-accelerated fade-in per word
+          span.style.opacity = "0";
+          span.style.filter = "blur(3px)";
+          span.style.transition = "opacity 0.2s ease-out, filter 0.2s ease-out";
+          span.style.display = "inline-block";
+          span.style.whiteSpace = "pre-wrap";
 
-      wordIndex++;
-      
-      // Delay speed factor (25ms spacing breaks up heavy context outputs beautifully)
-      setTimeout(printWordByWord, 25);
+          replyTarget.appendChild(span);
+
+          requestAnimationFrame(() => {
+            span.style.opacity = "1";
+            span.style.filter = "blur(0px)";
+          });
+
+          wordIndex++;
+          msgs.scrollTop = msgs.scrollHeight;
+          setTimeout(printWordByWord, 25);
+        }
+      }
+
+      printWordByWord();
+
+    } else {
+      appendAIBubble(data.error || "An error occurred fetching detailed vault profiles.");
     }
-  }
 
-  // Fire the animation sequence
-  printWordByWord();
-  
-} else {
-  // Catch fallback instances where an operational error code returns from the server
-  aiResponseText.innerText = data.error || "An error occurred fetching detailed vault profiles.";
-}
-
-} catch (e) {
+  } catch (e) {
 
     console.error(e);
+    showAITyping(false);
+    appendAIBubble("An error occurred fetching detailed vault profiles.");
 
-    aiResponseText.innerText =
-        "An error occurred fetching detailed vault profiles.";
-
-}
+  }
 
 }
 
@@ -1370,51 +1378,33 @@ async function showStep2() {
             return;
         }
 
-        // AUTHORIZED SUCCESS SEQUENCE
+        // AUTHORIZED — stash result and proceed to TOTP step
         if (loginBtn) {
             loginBtn.textContent = '✓ Identity Verified';
             loginBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
             loginBtn.style.opacity = '1';
         }
 
-        sessionStorage.setItem("vaultSessionToken", result.sessionToken);
-        sessionStorage.setItem("vaultSession", result.sessionToken);
-
-        resetInactivityTimer();
-
-        window.masterPassword = result.secret ? String(result.secret) : String(pass);
-
-        if (result.secret) {
-            sessionStorage.setItem("vault_session_secret", result.secret);
-        }
-
-        window.VAULT_MODE = result.mode;
-        sessionStorage.setItem("vaultMode", result.mode);
-
-        if (window.VAULT_MODE !== "ADMIN") {
-            const shareGear = document.getElementById("share-gear");
-            if (shareGear) shareGear.style.display = "none";
-        }
-
-        masterPassword = window.masterPassword;
         failedAttempts = 0;
-        sessionStartTime = new Date();
 
+        // Stash auth data — applied fully only after TOTP passes
+        window._pendingAuthResult = result;
+        window._pendingAuthPass   = pass;
+        window._pendingAuthHash   = await hashPassword(pass);
+
+        // Route to TOTP step
         const step1 = document.getElementById("step1");
         if (step1) {
             step1.style.pointerEvents = "none";
             step1.style.opacity = "0";
             step1.style.transition = "opacity 0.3s ease";
-            
             setTimeout(() => {
                 step1.style.display = "none";
-                const step2 = document.getElementById("step2");
-                if (step2) {
-                    step2.style.display = "flex";
-                    step2.style.opacity = "1";
-                }
+                startTOTPStep(window._pendingAuthHash);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }, 300);
+        } else {
+            startTOTPStep(await hashPassword(pass));
         }
 
     } catch (e) {
